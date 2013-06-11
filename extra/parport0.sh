@@ -9,5 +9,6 @@ echo -n "Installing device..."
 mknod $P c 99 0
 chgrp lp $P
 chmod g+rw $P
+usermod -a -G lp $SUDO_USER
 echo "done."
-echo "Make sure user '$SUDO_USER' is in group 'lp'."
+#echo "Make sure user '$SUDO_USER' is in group 'lp'."
