@@ -1,9 +1,12 @@
 - Angle to steps:
     X: 360º/2980 steps, 0.12080537 º/step
-    +-25 steps adjust (Verify)
+    +- 28 steps dir change adjust
     Z: 360º/1360 steps, 0.264706 º/step
-    +- 30 steps dir change adjust
-    Auto dir change adjust
+    +-7 steps adjust
+
+    dir change auto adjust
+
+    rename axes to Az/El.
 
 - Fix Z stuck
     counterweight
@@ -11,23 +14,20 @@
     better construction
 
 - Simultaneous axis control
-    buffered(message queue)
-    X+Z
-    X+Y   (unused)
-    Z+Y   (unused)
-    X+Y+Z (unused)
+    buffered(mq)
+    priority/cancel(mq bypass/erase)
 
 - PointerServer
     python
     protocol buffers
-    concurrent?
+    concurrent
 
 - Protocol
     config
         set angle step
         set change dir adjust offsets
         set zero offsets
-        calibrate
+        auto calibrate
         ...
     control
         go to zero

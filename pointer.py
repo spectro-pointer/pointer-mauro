@@ -58,6 +58,12 @@ class Pointer(EightBitIO):
         # Control function for each Control pin
         self.CTRL_FUN = {1: self.p.setDataStrobe, 14: self.p.setAutoFeed, 16: self.p.setInitOut, 17: self.p.setSelect}
         
+        # Angles to Steps conversions
+        self.stepAngle = [360./2980, 0., 90./340, 0.]
+        
+        # Dir change adjustment (CW, CCW) for X, Y , Z, A
+        self.dirChangeSteps = [(30, -30), (0, 0), (7, -7), (0, 0)]
+        
         super(Pointer, self).__init__()
         
     def move(self, axis, steps=STEP_ONE, dir=DIR_CW):
@@ -147,18 +153,30 @@ class Pointer(EightBitIO):
             for stepFunction in functions.values():
                 stepFunction(0)
             time.sleep(self.sleep_OFF) # wait off
-        
-if __name__ == '__main__':
-    pointer = Pointer()
 
+    def moveAngles(self, axes):
+        """Simultaneously move each axis from 'axes' the given angle
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        ax = {}
+        for axis, angle in axes.items():
+            steps = angle / self.stepAngle[axis]
+            ax[axis] = int(round(steps))
+        self.move2(ax)
+                 
+if __name__ == '__main__':
     if len(sys.argv) < 3 or not len(sys.argv) & 1:
-        print >>sys.stderr, "Usage: %s <axis> <steps> ...\naxis : {X|Y|Z|A}\nsteps: Number of steps(- = CCW)" % sys.argv[0]
+        print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
         sys.exit(1)
     axes = {'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
     dirs = {'CW': DIR_CW, 'CCW': DIR_CCW}
+    
+    pointer = Pointer()
+
     # Concurrent movements
     ax=dict()
-    for axis, steps in zip(sys.argv[1::2], sys.argv[2::2]): 
-        print axis, steps
-        ax[axes[axis]] = int(steps)
-    pointer.move2(ax)
+    for axis, angles in zip(sys.argv[1::2], sys.argv[2::2]): 
+        print axis, angles
+        ax[axes[axis]] = float(angles)
+    pointer.moveAngles(ax)
