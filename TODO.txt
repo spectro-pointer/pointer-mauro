@@ -1,0 +1,34 @@
+- Angle to steps:
+    X: 360º/2980 steps, 0.12080537 º/step
+    +-25 steps adjust (Verify)
+    Z: 360º/1360 steps, 0.264706 º/step
+    +- 7 steps dir change adjust
+
+- Fix Z stuck
+    counterweight
+    grease
+    better construction
+
+- Simultaneous axis control
+    buffered(message queue)
+    X+Z
+    X+Y   (unused)
+    Z+Y   (unused)
+    X+Y+Z (unused)
+
+- PointerServer
+    python
+    protocol buffers
+    concurrent?
+
+- Protocol
+    config
+        set angle step
+        set change dir adjust offsets
+        set zero offsets
+        calibrate
+        ...
+    control
+        go to zero
+        go to (relative) azimut
+        go to (relative) elevation
