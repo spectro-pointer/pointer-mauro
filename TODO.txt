@@ -2,7 +2,8 @@
     X: 360º/2980 steps, 0.12080537 º/step
     +-25 steps adjust (Verify)
     Z: 360º/1360 steps, 0.264706 º/step
-    +- 7 steps dir change adjust
+    +- 30 steps dir change adjust
+    Auto dir change adjust
 
 - Fix Z stuck
     counterweight

@@ -92,17 +92,73 @@ class Pointer(EightBitIO):
         else:
             print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
 
+    def move2(self, axes):
+        """Simultaneously move each axis from 'axes' its given number of steps
+           A negative step means CCW
+        """
+        steps = [0, 0, 0, 0]
+        datas = [0, 0, 0, 0]
+        functions = {}
+        
+        for axis, step in axes.items():
+            if (AXIS_X <= axis <= AXIS_A):
+                dir = DIR_CW
+                if step < 0: 
+                    dir = DIR_CCW
+                    step *= -1
+                steps[axis] = step
+                
+                pins=self.PINS[axis]
+                port=self.PORT(axis)
+                if port == self.PORT_DATA:
+                    bits=(self.DATA_BIT(pins[0]), self.DATA_BIT(pins[1]))
+                    datas[axis] = (1<<bits[0]) | (dir<<(bits[1]))
+                elif port == self.PORT_CTRL:
+                    # Set dir just once
+                    dirFunction = self.CTRL_FUN[pins[1]]
+                    dirFunction(dir)
+                    # Save step function for later
+                    functions[axis] = self.CTRL_FUN[pins[0]]
+            else:
+                print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
+        
+        # Now process
+        for i in range(max(steps)):
+            print "step", i+1
+            # Process each axis
+            data = 0 # FIXME: Consider multiple independent requests
+            # Data port axes
+            for axis in AXIS_Z, AXIS_A:
+                if steps[axis]:
+                    data |= datas[axis]
+                    steps[axis] -= 1
+            # Control port axes
+            for axis in AXIS_X, AXIS_Y:
+                if steps[axis]:
+                    # set dir
+                    stepFunction = functions[axis]
+                    stepFunction(1)
+                    steps[axis] -= 1
+            self.out(data) 
+            time.sleep(self.sleep_ON) # wait on
+            # Turn off Data axis (Z and A)
+            self.out(0)
+            # Turn off Control axis (Z and A)
+            for stepFunction in functions.values():
+                stepFunction(0)
+            time.sleep(self.sleep_OFF) # wait off
+        
 if __name__ == '__main__':
     pointer = Pointer()
 
-    if len(sys.argv) != 4 or int(sys.argv[2]) <= 0 or sys.argv[3] not in ('CW', 'CCW'):
-        print >>sys.stderr, "Usage: %s <axis> <steps> <dir>\naxis : {X|Y|Z|A}\nsteps: Number of steps\ndir  : {CW|CCW}" % sys.argv[0]
+    if len(sys.argv) < 3 or not len(sys.argv) & 1:
+        print >>sys.stderr, "Usage: %s <axis> <steps> ...\naxis : {X|Y|Z|A}\nsteps: Number of steps(- = CCW)" % sys.argv[0]
         sys.exit(1)
-    axis = {'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
+    axes = {'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
     dirs = {'CW': DIR_CW, 'CCW': DIR_CCW}
-    axis = axis[sys.argv[1]]
-    steps=  int(sys.argv[2])
-    dir  = dirs[sys.argv[3]]
-
-    print "axis: %s, dir: %s, steps: %d" % (sys.argv[1], sys.argv[3], steps)
-    pointer.move(axis, steps, dir)
+    # Concurrent movements
+    ax=dict()
+    for axis, steps in zip(sys.argv[1::2], sys.argv[2::2]): 
+        print axis, steps
+        ax[axes[axis]] = int(steps)
+    pointer.move2(ax)
