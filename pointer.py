@@ -32,13 +32,6 @@ class EightBitIO(object):
     def setRS(self, state):
         self.p.setInitOut(state)
         
-#    def toggleE(self):
-#        """toggle enable pin"""
-#        self.p.setDataStrobe(1)     #toggle LCD_E, the enable pin
-#        #~ time.sleep(0.001)
-#        self.p.setDataStrobe(0)     #back to inactive position
-#        #~ time.sleep(0.001)
-
     def out(self, data):
         """set data to the Pointer"""
         self.data = data
@@ -48,15 +41,16 @@ class Pointer(EightBitIO):
     def __init__(self):
         self.p = parallel.Parallel()
         
-        self.sleep_ON  = .005
-        self.sleep_OFF = .005
-        self.PINS = ((17, 16), (14, 1), (2, 3), (4, 5)) # (STEP, DIR) pins for earch axis      
+        self.sleep_ON  = .0075
+        self.sleep_OFF = .0075
+        self.PINS = ((17, 16), (14, 1), (2, 3), (4, 5)) # (STEP, DIR) pins for each axis      
         
         self.PORT_DATA=0
         self.PORT_CTRL=1
         self.PORT_STAT=2 # Not used
-        # Port(DATA/CTRL) for each pin
-        self.PORT     = { 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 2, 11: 2, 12: 2, 13: 2, 14: 1, 15: 2, 16: 1, 17: 1}
+        
+        # Port(DATA/CTRL) for each axis
+        self.PORT     = lambda axis: int(not(axis/2))
         
         # Data bit for each Data pin
         self.DATA_BIT = lambda pin: pin-2
@@ -70,7 +64,7 @@ class Pointer(EightBitIO):
         """Move 'axis' a 'steps' number of steps in direction 'dir'"""
         if (AXIS_X <= axis <= AXIS_A) and steps >0 and dir in (DIR_CW, DIR_CCW):
             pins=self.PINS[axis]
-            port=self.PORT[pins[0]] # The same port for both pins
+            port=self.PORT(axis)
 
             if port == self.PORT_DATA:
                 bits=(self.DATA_BIT(pins[0]), self.DATA_BIT(pins[1]))
@@ -84,9 +78,9 @@ class Pointer(EightBitIO):
             elif port == self.PORT_CTRL:
                 stepFunction = self.CTRL_FUN[pins[0]]
                 dirFunction  = self.CTRL_FUN[pins[1]]
-                # set dir first
+                # set dir
                 dirFunction(dir)
-                # set step(s)
+                # set steps
                 for i in range(steps):
                     print "step", i+1
                     stepFunction(1)
@@ -100,14 +94,6 @@ class Pointer(EightBitIO):
 
 if __name__ == '__main__':
     pointer = Pointer()
-#    pointer.move(AXIS_X, STEP_ONE, DIR_CW)
-#    pointer.move(AXIS_X, STEP_ONE, DIR_CCW)
-#    pointer.move(AXIS_Y, STEP_ONE, DIR_CW)
-#    pointer.move(AXIS_Y, STEP_ONE, DIR_CCW)
-#    pointer.move(AXIS_Z, STEP_ONE, DIR_CW)
-#    pointer.move(AXIS_Z, STEP_ONE, DIR_CCW)
-#    pointer.move(AXIS_A, STEP_ONE, DIR_CW)
-#    pointer.move(AXIS_A, STEP_ONE, DIR_CCW)
 
     if len(sys.argv) != 4 or int(sys.argv[2]) <= 0 or sys.argv[3] not in ('CW', 'CCW'):
         print >>sys.stderr, "Usage: %s <axis> <steps> <dir>\naxis : {X|Y|Z|A}\nsteps: Number of steps\ndir  : {CW|CCW}" % sys.argv[0]
