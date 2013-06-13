@@ -169,7 +169,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 3 or not len(sys.argv) & 1:
         print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
         sys.exit(1)
-    axes = {'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
+    axes = {'Az': AXIS_Z, 'El': AXIS_X, 'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
     dirs = {'CW': DIR_CW, 'CCW': DIR_CCW}
     
     pointer = Pointer()

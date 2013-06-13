@@ -1,12 +1,10 @@
 - Angle to steps:
     X: 360º/2980 steps, 0.12080537 º/step
-    +- 28 steps dir change adjust
+    +- 29 steps dir change adjust
     Z: 360º/1360 steps, 0.264706 º/step
-    +-7 steps adjust
+    +-  7 steps dir change adjust
 
     dir change auto adjust
-
-    rename axes to Az/El.
 
 - Fix Z stuck
     counterweight
