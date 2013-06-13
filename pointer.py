@@ -41,8 +41,10 @@ class Pointer(EightBitIO):
     def __init__(self):
         self.p = parallel.Parallel()
         
-        self.sleep_ON  = .0075
-        self.sleep_OFF = .0075
+        # Faster means less torque
+        self.sleep_ON  = (.0025, .0075, .0075, .0025)
+        self.sleep_OFF = (.0025, .0075, .0075, .0025)
+        
         self.PINS = ((17, 16), (14, 1), (2, 3), (4, 5)) # (STEP, DIR) pins for each axis      
         
         self.PORT_DATA=0
@@ -76,11 +78,11 @@ class Pointer(EightBitIO):
                 bits=(self.DATA_BIT(pins[0]), self.DATA_BIT(pins[1]))
                 data=(1<<bits[0]) | (dir<<(bits[1]))
                 for i in range(steps):
-                    print "step", i+1
+#                    print "step", i+1
                     self.out(data)
-                    time.sleep(self.sleep_ON)
+                    time.sleep(self.sleep_ON[axis])
                     self.out(0)
-                    time.sleep(self.sleep_OFF)
+                    time.sleep(self.sleep_OFF[axis])
             elif port == self.PORT_CTRL:
                 stepFunction = self.CTRL_FUN[pins[0]]
                 dirFunction  = self.CTRL_FUN[pins[1]]
@@ -88,11 +90,11 @@ class Pointer(EightBitIO):
                 dirFunction(dir)
                 # set steps
                 for i in range(steps):
-                    print "step", i+1
+#                    print "step", i+1
                     stepFunction(1)
-                    time.sleep(self.sleep_ON)
+                    time.sleep(self.sleep_ON[axis])
                     stepFunction(0)
-                    time.sleep(self.sleep_OFF)
+                    time.sleep(self.sleep_OFF[axis])
             else:
                 print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
         else:
@@ -130,14 +132,18 @@ class Pointer(EightBitIO):
         
         # Now process
         for i in range(max(steps)):
-            print "step", i+1
+#            print "step", i+1
             # Process each axis
             data = 0 # FIXME: Consider multiple independent requests
             # Data port axes
+            sleep_ON = 0
+            sleep_OFF= 0
             for axis in AXIS_Z, AXIS_A:
                 if steps[axis]:
                     data |= datas[axis]
                     steps[axis] -= 1
+                    sleep_ON  = max(sleep_ON, self.sleep_ON[axis])
+                    sleep_OFF = max(sleep_OFF, self.sleep_OFF[axis])
             # Control port axes
             for axis in AXIS_X, AXIS_Y:
                 if steps[axis]:
@@ -145,14 +151,16 @@ class Pointer(EightBitIO):
                     stepFunction = functions[axis]
                     stepFunction(1)
                     steps[axis] -= 1
+                    sleep_ON  = max(sleep_ON, self.sleep_ON[axis])
+                    sleep_OFF = max(sleep_OFF, self.sleep_OFF[axis])
             self.out(data) 
-            time.sleep(self.sleep_ON) # wait on
+            time.sleep(sleep_ON) # wait (max) on
             # Turn off Data axis (Z and A)
             self.out(0)
             # Turn off Control axis (Z and A)
             for stepFunction in functions.values():
                 stepFunction(0)
-            time.sleep(self.sleep_OFF) # wait off
+            time.sleep(sleep_OFF) # wait (max) off
 
     def moveAngles(self, axes):
         """Simultaneously move each axis from 'axes' the given angle
