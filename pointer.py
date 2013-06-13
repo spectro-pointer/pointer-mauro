@@ -101,8 +101,8 @@ class Pointer(EightBitIO):
             print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
 
     def move2(self, axes):
-        """Simultaneously move each axis from 'axes' its given number of steps
-           A negative step means CCW
+        """Simultaneously move each axis from 'axes', their given number of steps
+           A negative step is CCW
         """
         steps = [0, 0, 0, 0]
         datas = [0, 0, 0, 0]
@@ -113,7 +113,7 @@ class Pointer(EightBitIO):
                 dir = DIR_CW
                 if step < 0: 
                     dir = DIR_CCW
-                    step *= -1
+                    step = -step
                 steps[axis] = step
                 
                 pins=self.PINS[axis]
@@ -125,7 +125,7 @@ class Pointer(EightBitIO):
                     # Set dir just once
                     dirFunction = self.CTRL_FUN[pins[1]]
                     dirFunction(dir)
-                    # Save step function for later
+                    # Save step function
                     functions[axis] = self.CTRL_FUN[pins[0]]
             else:
                 print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
@@ -157,7 +157,7 @@ class Pointer(EightBitIO):
             time.sleep(sleep_ON) # wait (max) on
             # Turn off Data axis (Z and A)
             self.out(0)
-            # Turn off Control axis (Z and A)
+            # Turn off Control axis (X and Y)
             for stepFunction in functions.values():
                 stepFunction(0)
             time.sleep(sleep_OFF) # wait (max) off
