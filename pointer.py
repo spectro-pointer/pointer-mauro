@@ -172,7 +172,7 @@ class Pointer(EightBitIO):
         ax = {}
         for axis, angle in axesNames.items():
             print axis, angle
-            steps = angle / self.stepAngle[axis]
+            steps = angle / self.stepAngle[self.axes[axis]]
             ax[self.axes[axis]] = int(round(steps))
         self.move2(ax)
         
