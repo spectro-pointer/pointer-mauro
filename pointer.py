@@ -16,9 +16,9 @@ AXIS_Y	= 1
 AXIS_Z	= 2
 AXIS_A	= 3
 
-
 class EightBitIO(object):
     def __init__(self):
+        
         self.data = 0
         
         self.setRS(0)
@@ -41,9 +41,11 @@ class Pointer(EightBitIO):
     def __init__(self):
         self.p = parallel.Parallel()
         
+        self.axes = {'Az': AXIS_Z, 'El': AXIS_X, 'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
+
         # Faster means less torque
-        self.sleep_ON  = (.0275, .0075, .0275, .0025)
-        self.sleep_OFF = (.0275, .0075, .0275, .0025)
+        self.sleep_ON  = (.00275, .0075, .00275, .0025)
+        self.sleep_OFF = (.00275, .0075, .0275, .0025)
         
         self.PINS = ((17, 16), (14, 1), (2, 3), (4, 5)) # (STEP, DIR) pins for each axis      
         
@@ -162,23 +164,34 @@ class Pointer(EightBitIO):
                 stepFunction(0)
             time.sleep(sleep_OFF) # wait (max) off
 
-    def moveAngles(self, axes):
-        """Simultaneously move each axis from 'axes' the given angle
+    def moveAngles(self, axesNames):
+        """Simultaneously move each axis from 'axesNames' the given angle
            Angles are in degrees
            A negative angle means CCW
         """
         ax = {}
-        for axis, angle in axes.items():
+        for axis, angle in axesNames.items():
+            print axis, angle
             steps = angle / self.stepAngle[axis]
-            ax[axis] = int(round(steps))
+            ax[self.axes[axis]] = int(round(steps))
         self.move2(ax)
+        
+    def moveAzEl(self, azimuth, elevation):
+        """Simultaneously move in azimuth and elevation
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        # Concurrent movements
+        ax=dict()
+        for axis, angles in zip(('Az', 'El'), (azimuth, elevation)): 
+            print axis, angles
+            ax[axis] = float(angles)
+        self.moveAngles(ax)
                  
 if __name__ == '__main__':
     if len(sys.argv) < 3 or not len(sys.argv) & 1:
         print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {Az|El|X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
         sys.exit(1)
-    axes = {'Az': AXIS_Z, 'El': AXIS_X, 'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
-    dirs = {'CW': DIR_CW, 'CCW': DIR_CCW}
     
     pointer = Pointer()
 
@@ -186,5 +199,5 @@ if __name__ == '__main__':
     ax=dict()
     for axis, angles in zip(sys.argv[1::2], sys.argv[2::2]): 
         print axis, angles
-        ax[axes[axis]] = float(angles)
+        ax[axis] = float(angles)
     pointer.moveAngles(ax)
