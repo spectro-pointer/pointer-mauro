@@ -8,16 +8,20 @@
     better construction
 
 - client-server:
-    buffered(mq)
-    priority/cancel(mq bypass/erase)
     dir change auto adjust
+    
+    buffered(mq)
+    	pyrit's enqueue
+    priority/cancel(mq bypass/erase)
+    
     usb webcam
     	compass
     	level    	
     	target tracking
     config
         server-side config file
-        	save
+        	pyrit's config
+        	save at exit
 
         set change dir adjust offsets
         set relative to zero offsets
@@ -31,11 +35,8 @@
         		using webcam
         ...
     control
-        go to zero
-        go to (relative) azimut
-        go to (relative) elevation
-        go to absolute Azimuth
-        go to absolute Elevation
+        go to absolute Azimuth/Elevation
+        	pointAzEl()
         
 Functions:
 	- Telescope pointing
@@ -56,6 +57,7 @@ GUI:
 	Telescope pointing
 	Window sweeping
 	Moving target tracking
+		webcam based
 	
 Raspberry Pi
 	GPIO EightIO driver

@@ -43,9 +43,9 @@ class Pointer(EightBitIO):
         
         self.axes = {'Az': AXIS_Z, 'El': AXIS_X, 'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
 
-        # Faster means less torque
-        self.sleep_ON  = (.00275, .0075, .00275, .0025)
-        self.sleep_OFF = (.00275, .0075, .0275, .0025)
+        # Faster means less torque for X(El), Y, Z(Az), A
+        self.sleep_ON  = (.005, .0075, .025, .0025)
+        self.sleep_OFF = (.005, .0075, .025, .0025)
         
         self.PINS = ((17, 16), (14, 1), (2, 3), (4, 5)) # (STEP, DIR) pins for each axis      
         
@@ -65,42 +65,43 @@ class Pointer(EightBitIO):
         # Angles to Steps conversions
         self.stepAngle = [360./2980, 0., 90./340, 0.]
         
-        # Dir change adjustment (CW, CCW) for X, Y , Z, A
-        self.dirChangeSteps = [(30, -30), (0, 0), (7, -7), (0, 0)]
+        # Dir change adjustment (CW, CCW) for X(El), Y , Z(Az), A
+        self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
+        self.lastDir = [DIR_CW] * 4 # FIXME: Load at init/Save at exit in config file
         
         super(Pointer, self).__init__()
         
-    def move(self, axis, steps=STEP_ONE, dir=DIR_CW):
-        """Move 'axis' a 'steps' number of steps in direction 'dir'"""
-        if (AXIS_X <= axis <= AXIS_A) and steps >0 and dir in (DIR_CW, DIR_CCW):
-            pins=self.PINS[axis]
-            port=self.PORT(axis)
-
-            if port == self.PORT_DATA:
-                bits=(self.DATA_BIT(pins[0]), self.DATA_BIT(pins[1]))
-                data=(1<<bits[0]) | (dir<<(bits[1]))
-                for i in range(steps):
-#                    print "step", i+1
-                    self.out(data)
-                    time.sleep(self.sleep_ON[axis])
-                    self.out(0)
-                    time.sleep(self.sleep_OFF[axis])
-            elif port == self.PORT_CTRL:
-                stepFunction = self.CTRL_FUN[pins[0]]
-                dirFunction  = self.CTRL_FUN[pins[1]]
-                # set dir
-                dirFunction(dir)
-                # set steps
-                for i in range(steps):
-#                    print "step", i+1
-                    stepFunction(1)
-                    time.sleep(self.sleep_ON[axis])
-                    stepFunction(0)
-                    time.sleep(self.sleep_OFF[axis])
-            else:
-                print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
-        else:
-            print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
+#    def move(self, axis, steps=STEP_ONE, dir=DIR_CW):
+#        """Move 'axis' a 'steps' number of steps in direction 'dir'"""
+#        if (AXIS_X <= axis <= AXIS_A) and steps >0 and dir in (DIR_CW, DIR_CCW):
+#            pins=self.PINS[axis]
+#            port=self.PORT(axis)
+#
+#            if port == self.PORT_DATA:
+#                bits=(self.DATA_BIT(pins[0]), self.DATA_BIT(pins[1]))
+#                data=(1<<bits[0]) | (dir<<(bits[1]))
+#                for i in range(steps):
+##                    print "step", i+1
+#                    self.out(data)
+#                    time.sleep(self.sleep_ON[axis])
+#                    self.out(0)
+#                    time.sleep(self.sleep_OFF[axis])
+#            elif port == self.PORT_CTRL:
+#                stepFunction = self.CTRL_FUN[pins[0]]
+#                dirFunction  = self.CTRL_FUN[pins[1]]
+#                # set dir
+#                dirFunction(dir)
+#                # set steps
+#                for i in range(steps):
+##                    print "step", i+1
+#                    stepFunction(1)
+#                    time.sleep(self.sleep_ON[axis])
+#                    stepFunction(0)
+#                    time.sleep(self.sleep_OFF[axis])
+#            else:
+#                print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
+#        else:
+#            print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
 
     def move2(self, axes):
         """Simultaneously move each axis from 'axes', their given number of steps
@@ -116,7 +117,12 @@ class Pointer(EightBitIO):
                 if step < 0: 
                     dir = DIR_CCW
                     step = -step
+                
                 steps[axis] = step
+
+                if self.lastDir[axis] != dir: # change dir offsets
+                    steps[axis] += self.dirChangeSteps[axis][dir]
+                    self.lastDir[axis] = dir
                 
                 pins=self.PINS[axis]
                 port=self.PORT(axis)
