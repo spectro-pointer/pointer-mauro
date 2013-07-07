@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+if __name__ == "__main__":
+    import sys
+    import pointer_cli
+    try:
+        pointer_cli.Pointer_CLI().initFromArgv()
+    except (KeyboardInterrupt, SystemExit):
+        print >>sys.stderr, "\nInterrupted..."
+    except pointer_cli.PointerRuntimeError, e:
+        sys.exit(e)
