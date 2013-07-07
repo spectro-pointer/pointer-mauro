@@ -4,30 +4,59 @@
     Z: 360º/1360 steps, 0.264706 º/step
     +-  7 steps dir change adjust
 
-    dir change auto adjust
-
 - Fix Z stuck
-    counterweight
-    grease
     better construction
 
-- Simultaneous axis control
+- client-server:
     buffered(mq)
     priority/cancel(mq bypass/erase)
-
-- PointerServer
-    python
-    protocol buffers
-    concurrent
-
-- Protocol
+    dir change auto adjust
+    usb webcam
+    	compass
+    	level    	
+    	target tracking
     config
-        set angle step
+        server-side config file
+        	save
+
         set change dir adjust offsets
-        set zero offsets
+        set relative to zero offsets
+        	True North
+        	0º Elevation
+        	
+        set speed/ on/off delay
+
         auto calibrate
+        	dir change offsets
+        		using webcam
         ...
     control
         go to zero
         go to (relative) azimut
         go to (relative) elevation
+        go to absolute Azimuth
+        go to absolute Elevation
+        
+Functions:
+	- Telescope pointing
+		RA/Dec settings
+			set lat/long
+			conversion to Az/El
+		Earth rotation compensation
+			ntp time
+	- Target tracking
+		moving target detection
+			webcam based
+	- Window monitoring/sweeping
+		custom window
+		custom speeds
+		
+GUI:
+	Settings
+	Telescope pointing
+	Window sweeping
+	Moving target tracking
+	
+Raspberry Pi
+	GPIO EightIO driver
+	webcam driver
