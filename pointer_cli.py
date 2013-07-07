@@ -92,15 +92,16 @@ class Pointer_CLI(object):
                                         "option '%s'." % (command, arg))
 
         self.tell("Pointer %s (C) 2013 Mauro Lacy " \
-                  "http://maurol.com.ar/pointer\n" \
+                  "http://maurol.com.ar/dav/git/pointer\n" \
                   "This code is distributed under the GNU General Public " \
                   "License v3+\n" % util.VERSION, stream=sys.stdout)
         if command == 'help':
             func(self, **options)
+            sys.exit(1)
         elif '-s' in args:
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
-        else:
+        else: # local pointer
             options['pointer'] = pointer.Pointer()
         
         func(self, **options)
@@ -178,6 +179,7 @@ class Pointer_CLI(object):
             pyrit -e 15 point
 
         """
+        pointer.pointAzEl(azimuth, elevation)
     point.cli_options = ((), ('-e', '-a', '-s'))
 
     commands = {'move': move,
