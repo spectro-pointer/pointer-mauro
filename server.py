@@ -43,9 +43,14 @@ class PointerServer(util.AsyncXMLRPCServer):
     def __init__(self, pointer, iface='', port=17936):
         util.AsyncXMLRPCServer.__init__(self, (iface, port))
         self.methods['moveAzEl'] = self.moveAzEl
+        self.methods['pointAzEl'] = self.pointAzEl
         self.pointer = pointer
         self.start()
 
     def moveAzEl(self, azimuth, elevation):
         self.pointer.moveAzEl(azimuth, elevation)
+        return True
+    
+    def pointAzEl(self, azimuth, elevation):
+        self.pointer.pointAzEl(azimuth, elevation)
         return True

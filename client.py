@@ -66,9 +66,9 @@ def handle_xmlfault(*params):
                     groups = match.groupdict()
                     cls = groups['class']
                     fault = groups['fault']
-                    if cls == 'cpyrit.storage.DigestError':
+                    if cls == 'pointer.DigestError':
                         raise DigestError(fault)
-                    elif cls == 'cpyrit.storage.StorageError':
+                    elif cls == 'pointer.PointerError':
                         raise PointerError(fault)
                     else:
                         raise
@@ -109,3 +109,8 @@ class RPCPointer(object):
     def moveAzEl(self, azimuth, elevation):
         """Moves."""
         return self.cli.moveAzEl(azimuth, elevation)
+    
+    @handle_xmlfault()
+    def pointAzEl(self, azimuth, elevation):
+        """Points."""
+        return self.cli.pointAzEl(azimuth, elevation)

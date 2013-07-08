@@ -162,8 +162,7 @@ class Pointer_CLI(object):
     serve.cli_options = ((), ())
 
     def move(self, pointer, azimuth=0, elevation=0):
-        """Relative move the given Azimuth (Az) and Elevation(El) [degrees] 
-
+        """Relative move the given Azimuth and Elevation [degrees]
             For example:
             pyrit -a 10 -e 5 move
             pyrit -a 45 move
@@ -172,12 +171,10 @@ class Pointer_CLI(object):
         pointer.moveAzEl(azimuth, elevation)
     move.cli_options = ((), ('-e', '-a', '-s'))
 
-    def point(self, azimuth=0, elevation=0):
-        """Absolute move to the given Azimuth and Elevation [degrees] 
-
+    def point(self, pointer, azimuth=0, elevation=0):
+        """Absolute move to the given Azimuth and Elevation [degrees]
             For example:
             pyrit -e 15 point
-
         """
         pointer.pointAzEl(azimuth, elevation)
     point.cli_options = ((), ('-e', '-a', '-s'))
