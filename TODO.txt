@@ -8,7 +8,14 @@
     better construction
 
 - client-server:
+	zero at server start
+		0º Az (Compass North)
+		90º El (Level Zenith)
+		save our absolute position at exit
+		reset/set pos
+	
     dir change auto adjust
+    	based on webcam image movement
     
     buffered(mq)
     	pyrit's enqueue
@@ -21,7 +28,7 @@
     config
         server-side config file
         	pyrit's config
-        	save at exit
+        	save pos/settings at exit
 
         set change dir adjust offsets
         set relative to zero offsets
@@ -48,6 +55,9 @@ Functions:
 	- Target tracking
 		moving target detection
 			webcam based
+		brightness/color tracking
+			max brightness tracking
+			specific color(green laser?) tracking
 	- Window monitoring/sweeping
 		custom window
 		custom speeds
