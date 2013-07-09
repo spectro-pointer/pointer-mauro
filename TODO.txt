@@ -1,38 +1,39 @@
-- Angle to steps:
-    X: 360º/2980 steps, 0.12080537 º/step
-    +- 29 steps dir change adjust
-    Z: 360º/1360 steps, 0.264706 º/step
-    +-  7 steps dir change adjust
+- General
+    Fix Z stuck
+        better construction(Gustavo)
+        grease
+        right torque
+    control
+       	pointAzEl()
+           fix small movements when zero offset
 
-- Fix Z stuck
-    better construction
+    fix pointer_cli help
 
 - client-server:
 	zero at server start
-		0º Az (Compass North)
-		90º El (Level Zenith)
 		save our absolute position at exit
-		reset/set pos
 	
     dir change auto adjust
     	based on webcam image movement
     
     buffered(mq)
-    	pyrit's enqueue
-    priority/cancel(mq bypass/erase)
+    	see pyrit's enqueue
+        priority/cancel(mq bypass/erase)
     
     usb webcam
     	compass
     	level    	
+
     	target tracking
+
     config
         server-side config file
-        	pyrit's config
+        	see pyrit's config
         	save pos/settings at exit
 
         set change dir adjust offsets
         set relative to zero offsets
-        	True North
+        	True North(Including magnetic declination)
         	0º Elevation
         	
         set speed/ on/off delay
@@ -40,10 +41,9 @@
         auto calibrate
         	dir change offsets
         		using webcam
+            max speed
+                using webcam/switches
         ...
-    control
-        go to absolute Azimuth/Elevation
-        	pointAzEl()
         
 Functions:
 	- Telescope pointing
