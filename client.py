@@ -111,6 +111,36 @@ class RPCPointer(object):
         return self.cli.moveAzEl(azimuth, elevation)
     
     @handle_xmlfault()
+    def pointAz(self, azimuth):
+        """Points in Azimuth."""
+        return self.cli.pointAz(azimuth)
+    
+    @handle_xmlfault()
+    def pointEl(self, elevation):
+        """Points in Elevation."""
+        return self.cli.pointEl(elevation)
+    
+    @handle_xmlfault()
     def pointAzEl(self, azimuth, elevation):
         """Points."""
         return self.cli.pointAzEl(azimuth, elevation)
+    
+    @handle_xmlfault()
+    def getAzEl(self):
+        """Gets actual Azimuth and Elevation angles."""
+        azimuth, elevation = self.cli.getAzEl()
+        return azimuth, elevation
+        
+    @handle_xmlfault()
+    def setAz(self, azimuth):
+        """Sets Azimuth."""
+        return self.cli.pointAz(azimuth)
+    
+    @handle_xmlfault()
+    def setEl(self, elevation):
+        """Sets Elevation."""
+        return self.cli.pointEl(elevation)
+    
+    def setAzEl(self, azimuth, elevation):
+        """Points."""
+        return self.cli.setAzEl(azimuth, elevation)

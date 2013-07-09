@@ -72,7 +72,7 @@ class Pointer(EightBitIO):
         self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
         self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
         # Absolute Steps for X(El (90º)), Y, Z(Az), A
-        self.pos = [0, 0, 0, 0]
+        self.pos = [0., 0., 0., 0.]
         
         super(Pointer, self).__init__()
         
@@ -146,7 +146,7 @@ class Pointer(EightBitIO):
         
         # Now process
         changeDirSteps = [0, 0, 0, 0]
-        for i in range(max(steps)):
+        for i in range(int(round(max(steps)))):
 #            print "step", i+1
             # Process each axis
             data = 0 # FIXME: Consider multiple independent requests
@@ -186,7 +186,7 @@ class Pointer(EightBitIO):
                             print 'changeDir:', changeDirSteps[axis],
                             changeDirSteps[axis] += 1
                         else:
-                            self.pos[axis] -= (dir[axis] - 1 * int(dir[axis] == 0))
+                            self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
                     else:
                         self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
                 print steps[axis], ',',
@@ -224,9 +224,10 @@ class Pointer(EightBitIO):
         ax = defaultdict(int)
         for axis, angle in axesNames.items():
             axis = self.axes[axis]
+            print axis, angle
             steps = angle / self.stepAngle[axis]
             print axis, angle, self.pos[axis], steps,  
-            ax[axis] = int(round(steps))-self.pos[axis]
+            ax[axis] = round(steps-self.pos[axis])
             print 'delta:', ax[axis]
         self.move2(ax)
         
@@ -240,6 +241,84 @@ class Pointer(EightBitIO):
         for axis, angles in zip(('Az', 'El'), (azimuth, elevation)): 
             ax[axis] = float(angles)
         self.pointAngles(ax)
+        
+    def pointAz(self, azimuth):
+        """Only point in Azimuth, leaving Elevation unchanged
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        ax=dict()
+        ax['Az'] = azimuth
+        self.pointAngles(ax)
+
+        
+    def pointEl(self, elevation):
+        """Only point in Elevation, leaving Azimuth unchanged
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        ax=dict()
+        ax['El'] = elevation
+        self.pointAngles(ax)
+
+    def getAngles(self, axesNames):
+        """Get each axis from 'axesNames' to the given angle(step)
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        for axis in axesNames.keys():
+            ax = self.axes[axis]
+            angles = self.pos[ax] * self.stepAngle[ax]
+            axesNames[axis] = angles
+        return axesNames
+
+    def getAzEl(self):
+        """Get actual absolute Azimuth and Elevation angles
+           Returned angles are in degrees
+           A negative angle means CCW
+        """
+        ax=dict()
+        ax['Az'] = 0
+        ax['El'] = 0
+        ax = self.getAngles(ax)
+        return ax['Az'], ax['El']
+    
+    def setAngles(self, axesNames):
+        """Set each axis from 'axesNames' to the given angle(step)
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        for axis, angle in axesNames.items():
+            axis = self.axes[axis]
+            steps = angle / self.stepAngle[axis]
+            self.pos[axis] = steps
+
+    def setAzEl(self, azimuth=0., elevation=0.):
+        """Set absolute Azimuth and Elevation to actual azimuth/elevation angles
+           Used for pointer reset
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        self.setAz(azimuth)
+        self.setEl(elevation)
+        
+    def setAz(self, azimuth=0.):
+        """Self absolute Azimuth to actual azimuth axis position, leaving elevation axis unchanged
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        ax=dict()
+        ax['Az'] = azimuth
+        self.setAngles(ax)
+        
+    def setEl(self, elevation=0.):
+        """Set absolute Elevation to actual elevation axis position, leaving azimuth axis unchanged
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        ax=dict()
+        ax['El'] = elevation
+        self.setAngles(ax)
                  
 if __name__ == '__main__':
     if len(sys.argv) < 3 or not len(sys.argv) & 1:

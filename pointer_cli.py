@@ -164,23 +164,67 @@ class Pointer_CLI(object):
     def move(self, pointer, azimuth=0, elevation=0):
         """Relative move the given Azimuth and Elevation [degrees]
             For example:
-            pyrit -a 10 -e 5 move
-            pyrit -a 45 move
-            pyrit -e 15 move
+            pointer -a 10 -e 5 move
+            pointer -a 45 move
+            pointer -e 15 move
         """
         pointer.moveAzEl(azimuth, elevation)
     move.cli_options = ((), ('-e', '-a', '-s'))
 
-    def point(self, pointer, azimuth=0, elevation=0):
+    def point(self, pointer, azimuth=None, elevation=None):
         """Absolute move to the given Azimuth and Elevation [degrees]
             For example:
-            pyrit -e 15 point
+            pointer -e 15 point
         """
-        pointer.pointAzEl(azimuth, elevation)
+        if azimuth is None and elevation is not None:
+            pointer.pointEl(float(elevation))
+        elif azimuth is not None and elevation is None:
+            pointer.pointAz(float(azimuth))
+        elif azimuth is not  None and elevation is not None:
+            pointer.pointAzEl(float(azimuth), float(elevation))
+        else:
+            self.tell("At least one of -a or -e must be given.")
     point.cli_options = ((), ('-e', '-a', '-s'))
+
+    def get(self, pointer):
+        """Get actual pointer Azimuth and Elevation angles [degrees]
+            For example:
+            pointer get
+        """
+        azimuth, elevation = pointer.getAzEl()
+        self.tell("\nAzimuth: %.2f, " \
+                  "Elevation: %.2f" \
+                  % (azimuth, elevation))
+    get.cli_options = ((), ('-s'))
+            
+    def set(self, pointer, azimuth=None, elevation=None):
+        """Set actual pointer position to the given Azimuth and Elevation [degrees]
+            For example:
+            pointer -e 0 set
+        """
+        if azimuth is None and elevation is not None:
+            pointer.setEl(elevation)
+        elif azimuth is not None and elevation is None:
+            pointer.setAz(azimuth)
+        elif azimuth is not  None and elevation is not None:
+            pointer.setAzEl(azimuth, elevation)
+        else:
+            self.tell("At least one of -a or -e must be given.")
+    set.cli_options = ((), ('-e', '-a', '-s'))
+
+    def reset(self, pointer):
+        """Reset actual pointer position to zero Azimuth and Elevation [degrees]
+            For example:
+            pointer reset
+        """
+        pointer.setAzEl(0., 0.)
+    reset.cli_options = ((), ('-s'))
 
     commands = {'move': move,
                 'point': point,
+                'get' : get,
+                'reset' : reset,
+                'set' : set,
 #                'abort': abort,
 #                'set_speed': set_speed,
 #                'set_change_dir_adj:' change_dir_adj,
