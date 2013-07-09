@@ -177,13 +177,13 @@ class Pointer_CLI(object):
             pointer -e 15 point
         """
         if azimuth is None and elevation is not None:
-            pointer.pointEl(float(elevation))
+            pointer.pointEl(elevation)
         elif azimuth is not None and elevation is None:
-            pointer.pointAz(float(azimuth))
+            pointer.pointAz(azimuth)
         elif azimuth is not  None and elevation is not None:
-            pointer.pointAzEl(float(azimuth), float(elevation))
+            pointer.pointAzEl(azimuth, elevation)
         else:
-            self.tell("At least one of -a or -e must be given.")
+            pointer.pointAzEl(0., 0.)
     point.cli_options = ((), ('-e', '-a', '-s'))
 
     def get(self, pointer):
@@ -209,7 +209,7 @@ class Pointer_CLI(object):
         elif azimuth is not  None and elevation is not None:
             pointer.setAzEl(azimuth, elevation)
         else:
-            self.tell("At least one of -a or -e must be given.")
+            pointer.setAzEl(0., 0.)
     set.cli_options = ((), ('-e', '-a', '-s'))
 
     def reset(self, pointer):
