@@ -134,12 +134,12 @@ class RPCPointer(object):
     @handle_xmlfault()
     def setAz(self, azimuth):
         """Sets Azimuth."""
-        return self.cli.pointAz(azimuth)
+        return self.cli.setAz(azimuth)
     
     @handle_xmlfault()
     def setEl(self, elevation):
         """Sets Elevation."""
-        return self.cli.pointEl(elevation)
+        return self.cli.setEl(elevation)
     
     def setAzEl(self, azimuth, elevation):
         """Points."""

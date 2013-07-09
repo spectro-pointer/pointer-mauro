@@ -112,7 +112,7 @@ class Pointer(EightBitIO):
         """Simultaneously move each axis from 'axes', their given number of steps
            A negative step is CCW
         """
-        steps = [0, 0, 0, 0]
+        steps = [0., 0., 0., 0.]
         datas = [0, 0, 0, 0]
         functions = {}
         dir = defaultdict(int)
@@ -155,18 +155,16 @@ class Pointer(EightBitIO):
             sleep_OFF= 0
             # Data port axis
             for axis in AXIS_Z, AXIS_A:
-                if steps[axis]:
+                if steps[axis] >0.:
                     data |= datas[axis]
-                    steps[axis] -= 1
                     sleep_ON  = max(sleep_ON, self.sleep_ON[axis])
                     sleep_OFF = max(sleep_OFF, self.sleep_OFF[axis])
             # Control port axes
             for axis in AXIS_X, AXIS_Y:
-                if steps[axis]:
+                if steps[axis] >0.:
                     # set dir
                     stepFunction = functions[axis]
                     stepFunction(1)
-                    steps[axis] -= 1
                     sleep_ON  = max(sleep_ON, self.sleep_ON[axis])
                     sleep_OFF = max(sleep_OFF, self.sleep_OFF[axis])
             self.out(data) 
@@ -180,7 +178,8 @@ class Pointer(EightBitIO):
             print 'pos/steps:',
             for axis in AXIS_X, AXIS_Y, AXIS_Z, AXIS_A:
                 print dir[axis], self.pos[axis], '/',
-                if steps[axis] > 0:
+                if steps[axis] > 0.:
+                    steps[axis] -= 1
                     if changeDir[axis]:
                         if changeDirSteps[axis] < self.dirChangeSteps[axis][dir[axis]]:
                             print 'changeDir:', changeDirSteps[axis],
@@ -198,7 +197,7 @@ class Pointer(EightBitIO):
            Angles are in degrees
            A negative angle means CCW
         """
-        ax = defaultdict(int)
+        ax = dict()
         for axis, angle in axesNames.items():
             print axis, angle
             steps = angle / self.stepAngle[self.axes[axis]]
@@ -221,10 +220,9 @@ class Pointer(EightBitIO):
            Angles are in degrees
            A negative angle means CCW
         """
-        ax = defaultdict(int)
+        ax = dict()
         for axis, angle in axesNames.items():
             axis = self.axes[axis]
-            print axis, angle
             steps = angle / self.stepAngle[axis]
             print axis, angle, self.pos[axis], steps,  
             ax[axis] = round(steps-self.pos[axis])
@@ -290,7 +288,7 @@ class Pointer(EightBitIO):
         """
         for axis, angle in axesNames.items():
             axis = self.axes[axis]
-            steps = angle / self.stepAngle[axis]
+            steps = float(angle) / self.stepAngle[axis]
             self.pos[axis] = steps
 
     def setAzEl(self, azimuth=0., elevation=0.):
