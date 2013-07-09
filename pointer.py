@@ -72,7 +72,7 @@ class Pointer(EightBitIO):
         self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
         self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
         # Absolute Steps for X(El (90º)), Y, Z(Az), A
-        self.pos = [2980/4, 0, 0, 0]
+        self.pos = [0, 0, 0, 0]
         
         super(Pointer, self).__init__()
         
@@ -177,12 +177,20 @@ class Pointer(EightBitIO):
             for stepFunction in functions.values():
                 stepFunction(0)
             # Absolute steps tracking
+            print 'pos/steps:',
             for axis in AXIS_X, AXIS_Y, AXIS_Z, AXIS_A:
-                if steps[axis] >= 0:
-                    if changeDir[axis] and changeDirSteps[axis] < self.dirChangeSteps[axis]:
-                        changeDirSteps[axis] += 1
+                print dir[axis], self.pos[axis], '/',
+                if steps[axis] > 0:
+                    if changeDir[axis]:
+                        if changeDirSteps[axis] < self.dirChangeSteps[axis][dir[axis]]:
+                            print 'changeDir:', changeDirSteps[axis],
+                            changeDirSteps[axis] += 1
+                        else:
+                            self.pos[axis] -= (dir[axis] - 1 * int(dir[axis] == 0))
                     else:
-                        self.pos[axis] += (dir[axis] - 1 * (dir[axis] == 0))
+                        self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
+                print steps[axis], ',',
+            print
             time.sleep(sleep_OFF) # wait (max) off
 
     def moveAngles(self, axesNames):
@@ -197,18 +205,6 @@ class Pointer(EightBitIO):
             ax[self.axes[axis]] = int(round(steps))
         self.move2(ax)
     
-    def pointAngles(self, axesNames):
-        """Simultaneously point each axis from 'axesNames' to the given angle
-           Angles are in degrees
-           A negative angle means CCW
-        """
-        ax = defaultdict(int)
-        for axis, angle in axesNames.items():
-            print axis, angle
-            steps = angle / self.stepAngle[self.axes[axis]]
-            ax[self.axes[axis]] = self.pos[self.axes[axis]]+int(round(steps))
-        self.move2(ax)
-        
     def moveAzEl(self, azimuth, elevation):
         """Simultaneously move in azimuth and elevation
            Angles are in degrees
@@ -220,6 +216,20 @@ class Pointer(EightBitIO):
             ax[axis] = float(angles)
         self.moveAngles(ax)
 
+    def pointAngles(self, axesNames):
+        """Simultaneously point each axis from 'axesNames' to the given angle
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        ax = defaultdict(int)
+        for axis, angle in axesNames.items():
+            axis = self.axes[axis]
+            steps = angle / self.stepAngle[axis]
+            print axis, angle, self.pos[axis], steps,  
+            ax[axis] = int(round(steps))-self.pos[axis]
+            print 'delta:', ax[axis]
+        self.move2(ax)
+        
     def pointAzEl(self, azimuth, elevation):
         """Simultaneously point in azimuth and elevation
            Angles are in degrees
