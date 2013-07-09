@@ -96,8 +96,7 @@ class Pointer_CLI(object):
                   "This code is distributed under the GNU General Public " \
                   "License v3+\n" % util.VERSION, stream=sys.stdout)
         if command == 'help':
-            func(self, **options)
-            sys.exit(1)
+            pass
         elif '-s' in args:
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
