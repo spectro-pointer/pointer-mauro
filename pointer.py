@@ -150,10 +150,10 @@ class ParallelPointer(EightBitIO):
 try:
     import RPi.GPIO as GPIO
 except ImportError:
-    print "Raspberry Pi GPIO module not found."
-    sys.exit(1)
+    print "Warning: Raspberry Pi GPIO module not found."
+    pass
     
-class GpioPointer():
+class GpioPointer(object):
     """ GPIO-Based (Raspberry Pi) Pointer Driver"""
     def __init__(self):
         # 1. First set up RPi.GPIO
@@ -202,7 +202,7 @@ class GpioPointer():
         
         # Now process
         changeDirSteps = [0, 0, 0, 0]
-        for i in range(int(round(max(steps)))):
+        for _ in range(int(round(max(steps)))):
             sleep_ON = 0.
             sleep_OFF= 0.
             # Process each axis
@@ -212,7 +212,7 @@ class GpioPointer():
                     sleep_OFF = max(sleep_OFF, self.sleep_OFF[axis])
                     GPIO.output(ports[axis], True)
                 else:
-                    ports.remove(axis)
+                    ports.del(axis)
             
             time.sleep(sleep_ON) # wait (max) on
            
