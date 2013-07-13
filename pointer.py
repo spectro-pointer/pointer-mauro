@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-# Generic pointer driver
+# Generic Parallel Port Pointer Driver
 #
 #(C) 2013 Mauro Lacy <mauro@lacy.com.ar>
 # this is distributed under a free software license, see license.txt
 
 import sys, time
-sys.path.insert(0, '..')
-import parallel
 
 from collections import defaultdict
 
@@ -36,16 +34,17 @@ class EightBitIO(object):
         self.p.setInitOut(state)
         
     def out(self, data):
-        """set data to the Pointer"""
+        """set data to the Port"""
         self.data = data
         self.p.setData(self.data)
 
-class Pointer(EightBitIO):
+class ParallelPointer(EightBitIO):
+    """ Parallel Port Pointer Driver"""
+    
     def __init__(self):
+        import parallel
         self.p = parallel.Parallel()
         
-        self.axes = {'Az': AXIS_Z, 'El': AXIS_X, 'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
-
         self.PINS = ((17, 16), (14, 1), (2, 3), (4, 5)) # (STEP, DIR) pins for each axis      
         
         self.PORT_DATA=0
@@ -61,55 +60,11 @@ class Pointer(EightBitIO):
         # Control function for each Control pin
         self.CTRL_FUN = {1: self.p.setDataStrobe, 14: self.p.setAutoFeed, 16: self.p.setInitOut, 17: self.p.setSelect}
         
-        # Angles to Steps conversions
-        self.stepAngle = [360./2980, 0., 90./340, 0.]
+        super(ParallelPointer, self).__init__()
         
-        # Faster means less torque for X(El), Y, Z(Az), A
-        # FIXME: read all from config
-        self.sleep_ON  = (.005, .0075, .025, .0025)
-        self.sleep_OFF = (.005, .0075, .025, .0025)
-        # Dir change adjustment (CW, CCW) for X(El), Y , Z(Az), A
-        self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
-        self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
-        # Absolute Steps for X(El (90º)), Y, Z(Az), A
-        self.pos = [0., 0., 0., 0.]
-        
-        super(Pointer, self).__init__()
-        
-#    def move(self, axis, steps=STEP_ONE, dir=DIR_CW):
-#        """Move 'axis' a 'steps' number of steps in direction 'dir'"""
-#        if (AXIS_X <= axis <= AXIS_A) and steps >0 and dir in (DIR_CW, DIR_CCW):
-#            pins=self.PINS[axis]
-#            port=self.PORT(axis)
-#
-#            if port == self.PORT_DATA:
-#                bits=(self.DATA_BIT(pins[0]), self.DATA_BIT(pins[1]))
-#                data=(1<<bits[0]) | (dir<<(bits[1]))
-#                for i in range(steps):
-##                    print "step", i+1
-#                    self.out(data)
-#                    time.sleep(self.sleep_ON[axis])
-#                    self.out(0)
-#                    time.sleep(self.sleep_OFF[axis])
-#            elif port == self.PORT_CTRL:
-#                stepFunction = self.CTRL_FUN[pins[0]]
-#                dirFunction  = self.CTRL_FUN[pins[1]]
-#                # set dir
-#                dirFunction(dir)
-#                # set steps
-#                for i in range(steps):
-##                    print "step", i+1
-#                    stepFunction(1)
-#                    time.sleep(self.sleep_ON[axis])
-#                    stepFunction(0)
-#                    time.sleep(self.sleep_OFF[axis])
-#            else:
-#                print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
-#        else:
-#            print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir)
-
     def move2(self, axes):
-        """Simultaneously move each axis from 'axes', their given number of steps
+        """Low-level Simultaneous Axis Move Function
+           Simultaneously move each axis from 'axes', their given number of steps
            A negative step is CCW
         """
         steps = [0., 0., 0., 0.]
@@ -191,6 +146,118 @@ class Pointer(EightBitIO):
                 print steps[axis], ',',
             print
             time.sleep(sleep_OFF) # wait (max) off
+
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print "Raspberry Pi GPIO module not found."
+    sys.exit(1)
+    
+class GpioPointer():
+    """ GPIO-Based (Raspberry Pi) Pointer Driver"""
+    def __init__(self):
+        # 1. First set up RPi.GPIO
+        GPIO.setmode(GPIO.BOARD)
+        
+        self.PORTS= ((8, 10), (13, 15), (3, 5), (7, 11)) # (STEP, DIR) GPIO ports for each axis      
+        
+        for p in reduce(tuple.__add__, self.PORTS, ()):
+            try:
+                GPIO.setup(p, GPIO.OUT)
+            except ValueError:
+                print "Invalid port:", p
+                sys.exit(1)
+            
+#        super(GpioPointer, self).__init__()
+        
+    def move2(self, axes):
+        """Low-level Simultaneous Axis Move Function
+           Simultaneously move each axis from 'axes', their given number of steps
+           A negative step is CCW
+        """
+        steps = [0., 0., 0., 0.]
+        ports = {}
+        dir = defaultdict(int)
+        changeDir = [False, False, False, False]
+        for axis, step in axes.items():
+            if (AXIS_X <= axis <= AXIS_A):
+                dir[axis] = DIR_CW
+                if step < 0: 
+                    dir[axis] = DIR_CCW
+                    step = -step
+                
+                steps[axis] = step
+
+                if self.lastDir[axis] != dir[axis]: # change dir offsets
+                    steps[axis] += self.dirChangeSteps[axis][dir[axis]]
+                    changeDir[axis] = True
+                    self.lastDir[axis] = dir[axis]                
+                port=self.PORTS[axis]
+                # Set dir just once
+                GPIO.output(port[1], dir[axis])
+                # Step port
+                ports[axis] = port[0]
+            else:
+                print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir[axis])
+        
+        # Now process
+        changeDirSteps = [0, 0, 0, 0]
+        for i in range(int(round(max(steps)))):
+            sleep_ON = 0.
+            sleep_OFF= 0.
+            # Process each axis
+            for axis in ports.keys():
+                if steps[axis] > 0.:
+                    sleep_ON  = max(sleep_ON, self.sleep_ON[axis])
+                    sleep_OFF = max(sleep_OFF, self.sleep_OFF[axis])
+                    GPIO.output(ports[axis], True)
+                else:
+                    ports.remove(axis)
+            
+            time.sleep(sleep_ON) # wait (max) on
+           
+            # Turn off all Remaining Axes
+            for axis in ports.keys():
+                GPIO.output(ports[axis], False)
+            
+            # Absolute steps tracking
+            print 'pos/steps:',
+            for axis in AXIS_X, AXIS_Y, AXIS_Z, AXIS_A:
+                print dir[axis], self.pos[axis], '/',
+                if steps[axis] > 0.:
+                    steps[axis] -= 1
+                    if changeDir[axis]:
+                        if changeDirSteps[axis] < self.dirChangeSteps[axis][dir[axis]]:
+                            print 'changeDir:', changeDirSteps[axis],
+                            changeDirSteps[axis] += 1
+                        else:
+                            self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
+                    else:
+                        self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
+                print steps[axis], ',',
+            print
+            time.sleep(sleep_OFF) # wait (max) off
+
+class Pointer(GpioPointer):
+#class Pointer(ParallelPointer):
+    """Hardware Independent Pointer class"""
+    def __init__(self):
+        self.axes = {'Az': AXIS_Z, 'El': AXIS_X, 'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
+
+        # Angles to Steps conversions
+        self.stepAngle = [360./2980, 0., 90./340, 0.]
+        
+        # Faster means less torque for X(El), Y, Z(Az), A
+        # FIXME: read all from config
+        self.sleep_ON  = (.005, .0075, .025, .0025)
+        self.sleep_OFF = (.005, .0075, .025, .0025)
+        # Dir change adjustment (CW, CCW) for X(El), Y , Z(Az), A
+        self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
+        self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
+        # Absolute Steps for X(El (90º)), Y, Z(Az), A
+        self.pos = [0., 0., 0., 0.]
+        
+        super(Pointer, self).__init__()
 
     def moveAngles(self, axesNames):
         """Simultaneously move each axis from 'axesNames' the given angle
