@@ -212,7 +212,7 @@ class GpioPointer(object):
                     sleep_OFF = max(sleep_OFF, self.sleep_OFF[axis])
                     GPIO.output(ports[axis], True)
                 else:
-                    del port[axis]
+                    del ports[axis]
             
             time.sleep(sleep_ON) # wait (max) on
            
