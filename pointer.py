@@ -313,7 +313,7 @@ class Pointer(GpioPointer):
            A negative angle means CCW
         """
         ax=dict()
-        ax['Az'] = azimuth
+        ax['Az'] = float(azimuth)
         self.pointAngles(ax)
 
         
@@ -323,7 +323,7 @@ class Pointer(GpioPointer):
            A negative angle means CCW
         """
         ax=dict()
-        ax['El'] = elevation
+        ax['El'] = float(elevation)
         self.pointAngles(ax)
 
     def getAngles(self, axesNames):
