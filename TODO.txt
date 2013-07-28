@@ -2,24 +2,16 @@
     Fix Z stuck
         better construction(Gustavo)
         grease
-        right torque
-    control
-       	pointAzEl()
-           fix small movements when zero offset
+        right torque in screws
 
-    fix pointer_cli help
+- server:
+    buffered commands(mq)
+    	see pyrit's 'enqueue'
+        priority/cancel(mq bypass/erase)
+    		abort command
 
-- client-server:
-	zero at server start
-		save our absolute position at exit
-	
     dir change auto adjust
     	based on webcam image movement
-    
-    buffered(mq)
-    	see pyrit's enqueue
-        priority/cancel(mq bypass/erase)
-    
     usb webcam
     	compass
     	level    	
@@ -35,7 +27,7 @@
         set relative to zero offsets
         	True North(Including magnetic declination)
         	0º Elevation
-        	
+
         set speed/ on/off delay
 
         auto calibrate
@@ -51,17 +43,19 @@ Functions:
 			set lat/long
 			conversion to Az/El
 		Earth rotation compensation
-			ntp time
+			obtain ntp time
 	- Target tracking
 		moving target detection
 			webcam based
 		brightness/color tracking
 			max brightness tracking
 			specific color(green laser?) tracking
-	- Window monitoring/sweeping
+	- Window sweeping
 		custom window
 		custom speeds
 		
+	- Mouse tracking (GUI)
+
 GUI:
 	Settings
 	Telescope pointing
