@@ -160,7 +160,7 @@ class GpioPointer(object):
         GPIO.setmode(GPIO.BOARD)
         
 #        self.PORTS= ((8, 10), (13, 15), (3, 5), (7, 11)) # (STEP, DIR) GPIO ports for each axis
-        self.PORTS= ((19, 7), (11, 21), (22, 24), (13, 5)) # (STEP, DIR) GPIO ports for each axis
+        self.PORTS= ((18, 7), (11, 21), (22, 24), (13, 5)) # (STEP, DIR) GPIO ports for each axis
         
         for p in reduce(tuple.__add__, self.PORTS, ()):
             try:
