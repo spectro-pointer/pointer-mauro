@@ -159,6 +159,8 @@ class Axis(Thread):
         
         self.PORTS = (step, dir)
         self.lastDir = DIR_CW # default
+        self.pos = 0.
+        self.dirChangeSteps = (40, 40) # FIXME
         
         self.cv = Condition()
 
