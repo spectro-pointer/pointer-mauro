@@ -6,6 +6,8 @@
 # this is distributed under a free software license, see license.txt
 
 import sys, time
+from util import Thread
+from threading import Condition
 
 from collections import defaultdict
 
@@ -147,6 +149,98 @@ class ParallelPointer(EightBitIO):
             print
             time.sleep(sleep_OFF) # wait (max) off
 
+class Axis(Thread):
+    """ A threaded axis processor
+    
+        Independent processing for each axis
+    """
+    def __init__(self, (step, dir)):
+        Thread.__init__(self)
+        
+        self.PORTS = (step, dir)
+        self.lastDir = DIR_CW # default
+        
+        self.cv = Condition()
+
+        # request queue        
+        self.requests = []
+        
+        self.setDaemon(True)
+        self.start()
+        
+    def run(self):
+        while self.shallStop is False:
+            # read request from requests list and process
+            with self.cv:
+                while len(self.requests) == 0 and self.shallStop is False:
+                        self.cv.wait(1)
+                if self.shallStop is not False:
+                        break
+                request = self.requests.pop(0)
+            # process
+            print "Request received in thread %s: req: %d" % (self.name, request)
+            self.move(request)      
+
+    def put_request(self, request):
+        # write request to mqueue
+        print 'Request to thread %s: steps: %d' % (self.name, request)
+        with self.cv:
+            self.requests.append(request)
+            self.cv.notifyAll()
+
+    def serve_forever(self):
+        while not self.shallStop:
+            time.sleep(1)
+
+    def shutdown(self):
+        Thread.shutdown(self)
+
+    def move(self, steps):
+        """Low-level Axis Move Function
+           Move a given number of steps
+           A negative step is CCW
+        """
+        dir = DIR_CW
+        changeDir = False
+        if steps < 0: 
+            dir = DIR_CCW
+            steps = -steps
+                
+        steps = float(steps)
+
+        if self.lastDir != dir: # change dir offsets
+            steps += self.dirChangeSteps[dir]
+            changeDir = True
+            self.lastDir = dir                
+        port=self.PORTS
+        # Set dir just once
+        GPIO.output(port[1], dir)
+        
+        sleep_ON = 0.025
+        sleep_OFF= 0.025
+        # Now process
+        changeDirSteps = 0
+        for _ in range(int(round(steps))):            
+            GPIO.output(port[0], True)
+            time.sleep(sleep_ON) # wait on
+           
+            GPIO.output(port[0], False)
+            
+            # Absolute steps tracking
+            print 'pos/steps:',
+            print dir, self.pos, '/',
+            if changeDir:
+                if changeDirSteps < self.dirChangeSteps[dir]:
+                    print 'changeDir:', changeDirSteps,
+                    changeDirSteps += 1
+                else:
+                    self.pos -= (dir - 1 * (dir == 0))
+            else:
+                self.pos -= (dir - 1 * (dir == 0))
+            print steps, ',',
+            print
+            time.sleep(sleep_OFF) # wait off
+
 try:
     import RPi.GPIO as GPIO
 except ImportError:
@@ -168,7 +262,13 @@ class GpioPointer(object):
             except ValueError:
                 print "Invalid port:", p
                 sys.exit(1)
-            
+        
+        # Threads for each axis
+        self.Axes = []
+        for i, name in enumerate(['X', 'Y', 'Z', 'A']): 
+            self.Axes.append(Axis(self.PORTS[i]))
+            self.Axes[i].name=name
+        
 #        super(GpioPointer, self).__init__()
         
     def move2(self, axes):
@@ -238,6 +338,15 @@ class GpioPointer(object):
                 print steps[axis], ',',
             print
             time.sleep(sleep_OFF) # wait (max) off
+        
+    def move3(self, axes):
+        """Low-level Simultaneous Axis Move Function
+           Threaded Version 
+           Simultaneously move each axis from 'axes', their given number of steps
+           A negative step is CCW
+        """
+        for axis, step in axes.items():
+            self.Axes[axis].put_request(step)
 
 class Pointer(GpioPointer):
 #class Pointer(ParallelPointer):
@@ -250,8 +359,8 @@ class Pointer(GpioPointer):
         
         # Faster means less torque for X(El), Y, Z(Az), A
         # FIXME: read all from config
-        self.sleep_ON  = (.005, .0075, .025, .0025)
-        self.sleep_OFF = (.005, .0075, .025, .0025)
+        self.sleep_ON  = (.005, .0075, .020, .0025)
+        self.sleep_OFF = (.005, .0075, .020, .0025)
         # Dir change adjustment (CW, CCW) for X(El), Y , Z(Az), A
         self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
         self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
@@ -270,7 +379,7 @@ class Pointer(GpioPointer):
             print axis, angle
             steps = angle / self.stepAngle[self.axes[axis]]
             ax[self.axes[axis]] = int(round(steps))
-        self.move2(ax)
+        self.move3(ax)
     
     def moveAzEl(self, azimuth, elevation):
         """Simultaneously move in azimuth and elevation
@@ -295,7 +404,7 @@ class Pointer(GpioPointer):
             print axis, angle, self.pos[axis], steps,  
             ax[axis] = round(steps-self.pos[axis])
             print 'delta:', ax[axis]
-        self.move2(ax)
+        self.move3(ax)
         
     def pointAzEl(self, azimuth, elevation):
         """Simultaneously point in azimuth and elevation
@@ -316,7 +425,6 @@ class Pointer(GpioPointer):
         ax=dict()
         ax['Az'] = float(azimuth)
         self.pointAngles(ax)
-
         
     def pointEl(self, elevation):
         """Only point in Elevation, leaving Azimuth unchanged
@@ -398,3 +506,4 @@ if __name__ == '__main__':
     for axis, angles in zip(sys.argv[1::2], sys.argv[2::2]): 
         ax[axis] = float(angles)
     pointer.moveAngles(ax)
+    time.sleep(3) # give time to the threads to process the requests
