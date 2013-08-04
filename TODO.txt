@@ -1,20 +1,23 @@
-- OOP
-	Parallel uses threaded axes
-	Pointer/Axes abstractions
-		Parallel/GPIOAxis?
-		
 - General
     Fix Z stuck
         better construction
         grease
         right torque in screws
 
+- OOP
+	Parallel uses threaded axes
+	Pointer/Axes abstractions
+		Parallel/GPIOAxis?
+    Refactoring
+        AzElPointer
+        RaDecPointer
+        ...
+		
 - server:
     threaded commands
 		abort command
-
     dir change auto adjust
-    	based on webcam image movement
+    	based on webcam image movement?
     usb webcam
     	compass
     	level
