@@ -282,7 +282,7 @@ class Axis(Thread):
             print steps, ',',
             print
             time.sleep(sleepOff) # wait off
-            step -= 1;
+            step += 1;
 
 try:
     import RPi.GPIO as GPIO
