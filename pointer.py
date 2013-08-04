@@ -192,27 +192,37 @@ class Axis(Thread):
             self.requests.append(request)
             self.cv.notifyAll()
 
-    def serve_forever(self):
-        while not self.shallStop:
-            time.sleep(1)
+#    def serve_forever(self):
+#        while not self.shallStop:
+#            time.sleep(1)
 
     def shutdown(self):
         Thread.shutdown(self)
         
+    def get_sleep(self):
+        return self.sleep
+    
+    def get_dirChangeSteps(self):
+        return self.dirChangeSteps
+
+    def get_pos(self):
+        return self.pos
+        
     def set_sleep(self, delay):
         """ Set step delay
+            Format is (CW, CCW)
             In seconds
         """
-        self.sleep[0] = delay[0]
-        self.sleep[1] = delay[1]
-        
+        self.sleep = delay
+       
     def set_dirChangeSteps(self, dirChangeSteps):
         """ Set step delay
             In seconds
         """
-        self.dirChangeSteps[0] = dirChangeSteps[0]
-        self.dirChangeSteps[1] = dirChangeSteps[1]
+        self.dirChangeSteps = dirChangeSteps
 
+    def set_pos(self, pos):
+        self.pos = pos
 
     def move(self, steps):
         """Low-level Axis Move Function
@@ -233,17 +243,20 @@ class Axis(Thread):
             self.lastDir = dir                
         port=self.PORTS
         # Set dir just once
-        GPIO.output(port[1], dir)
+        if gpioFound:
+            GPIO.output(port[1], dir)
         
         sleepOn = self.sleep[0]
         sleepOff= self.sleep[1]
         # Now process
         changeDirSteps = 0
-        for _ in range(int(round(steps))):            
-            GPIO.output(port[0], True)
+        for _ in range(int(round(steps))):
+            if gpioFound:      
+                GPIO.output(port[0], True)
             time.sleep(sleepOn)
            
-            GPIO.output(port[0], False)
+            if gpioFound:
+                GPIO.output(port[0], False)
             
             # Absolute steps tracking
             print 'pos/steps:',
@@ -262,7 +275,9 @@ class Axis(Thread):
 
 try:
     import RPi.GPIO as GPIO
+    gpioFound = True
 except ImportError:
+    gpioFound = False
     print "Warning: Raspberry Pi GPIO module not found."
     pass
     
@@ -270,13 +285,15 @@ class GpioPointer(object):
     """ GPIO-Based (Raspberry Pi) Pointer Driver"""
     def __init__(self):
         # 1. First set up RPi.GPIO
-        GPIO.setmode(GPIO.BOARD)
+        if gpioFound:
+            GPIO.setmode(GPIO.BOARD)
         
         self.PORTS= ((18, 7), (11, 21), (22, 24), (13, 5)) # (STEP, DIR) GPIO ports for each axis
         
         for p in reduce(tuple.__add__, self.PORTS, ()):
             try:
-                GPIO.setup(p, GPIO.OUT)
+                if gpioFound:
+                    GPIO.setup(p, GPIO.OUT)
             except ValueError:
                 print "Invalid port:", p
                 sys.exit(1)
@@ -369,8 +386,9 @@ class Pointer(GpioPointer):
         for axis, angle in axesNames.items():
             axis = self.axes[axis]
             steps = angle / self.stepAngle[axis]
-            print axis, angle, self.pos[axis], steps,  
-            ax[axis] = round(steps-self.pos[axis])
+            pos = self.Axes[axis].get_pos()
+            print axis, angle, pos, steps,  
+            ax[axis] = round(steps-pos)
             print 'delta:', ax[axis]
         self.move(ax)
         
@@ -410,7 +428,8 @@ class Pointer(GpioPointer):
         """
         for axis in axesNames.keys():
             ax = self.axes[axis]
-            angles = self.pos[ax] * self.stepAngle[ax]
+            pos = self.Axes[ax].get_pos()
+            angles = pos * self.stepAngle[ax]
             axesNames[axis] = angles
         return axesNames
 
@@ -433,7 +452,7 @@ class Pointer(GpioPointer):
         for axis, angle in axesNames.items():
             axis = self.axes[axis]
             steps = float(angle) / self.stepAngle[axis]
-            self.pos[axis] = steps
+            self.Axes[axis].set_pos(steps)
 
     def setAzEl(self, azimuth=0., elevation=0.):
         """Set absolute Azimuth and Elevation to actual azimuth/elevation angles
