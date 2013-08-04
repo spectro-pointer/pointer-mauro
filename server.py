@@ -52,6 +52,7 @@ class PointerServer(util.AsyncXMLRPCServer):
         self.methods['setAzEl'] = self.setAzEl
         self.methods['getAzElSpeed'] = self.getAzElSpeed
         self.methods['setAzElSpeed'] = self.setAzElSpeed
+        self.methods['abort'] = self.abort
         self.pointer = pointer
         self.start()
     def moveAzEl(self, azimuth, elevation):
@@ -82,4 +83,7 @@ class PointerServer(util.AsyncXMLRPCServer):
         return self.pointer.getAzElSpeed()
     def setAzElSpeed(self, azimuth, elevation):
         self.pointer.setAzElSpeed(azimuth, elevation)
+        return True
+    def abort(self):
+        self.pointer.abort()
         return True

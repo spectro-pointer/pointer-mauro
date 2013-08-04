@@ -230,6 +230,14 @@ class Pointer_CLI(object):
         """
         pointer.setAzElSpeed(azimuth, elevation)
     setSpeed.cli_options = ((), ('-e', '-a', '-s'))
+
+    def abort(self, pointer):
+        """Abort currently executing command
+            For example:
+            pointer -s raspberrypi abort
+        """
+        pointer.abort()
+    abort.cli_options = ((), ('-s'))
         
     commands = {'move': move,
                 'point': point,
@@ -237,7 +245,7 @@ class Pointer_CLI(object):
                 'getSpeed' : getSpeed,
                 'set' : set,
                 'setSpeed' : setSpeed,
-#                'abort': abort,
-#                'set_change_dir_adj:' change_dir_adj,
+#                'setChangeDirSteps:' setChangeDirSteps,
+                'abort': abort,
                 'help': print_help,
                 'serve': serve}

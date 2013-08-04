@@ -152,6 +152,12 @@ class RPCPointer(object):
         azimuth, elevation = self.cli.getAzElSpeed()
         return azimuth, elevation
 
+    @handle_xmlfault()
     def setAzElSpeed(self, azimuth, elevation):
         """Sets Speeds."""
         return self.cli.setAzElSpeed(azimuth, elevation)
+
+    @handle_xmlfault()
+    def abort(self):
+        """Abort in-process commands."""
+        return self.cli.abort()

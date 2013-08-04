@@ -16,6 +16,7 @@
 - server:
     threaded commands
 		abort command
+	duty cycle
     dir change auto adjust
     	based on webcam image movement?
     usb webcam

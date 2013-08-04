@@ -163,6 +163,7 @@ class Axis(Thread):
         self.dirChangeSteps = [0, 0]
         self.pos = 0.
         self.sleep = [0.050, 0.050] # default
+        self.abortMove = False
         
         self.cv = Condition()
 
@@ -227,6 +228,9 @@ class Axis(Thread):
 
     def set_pos(self, pos):
         self.pos = pos
+        
+    def abort(self):
+        self.abortMove = True
 
     def move(self, steps):
         """Low-level Axis Move Function
@@ -238,7 +242,7 @@ class Axis(Thread):
         if steps < 0: 
             dir = DIR_CCW
             steps = -steps
-                
+        
         steps = float(steps)
 
         if self.lastDir != dir: # change dir offsets
@@ -254,7 +258,9 @@ class Axis(Thread):
         sleepOff= self.sleep[1]
         # Now process
         changeDirSteps = 0
-        for _ in range(int(round(steps))):
+        step = 0
+        self.abortMove = False
+        while step < round(steps) and self.abortMove is not True:
             if gpioFound:      
                 GPIO.output(port[0], True)
             time.sleep(sleepOn)
@@ -276,6 +282,7 @@ class Axis(Thread):
             print steps, ',',
             print
             time.sleep(sleepOff) # wait off
+            step -= 1;
 
 try:
     import RPi.GPIO as GPIO
@@ -516,6 +523,10 @@ class Pointer(GpioPointer):
         if elevation != 0.:
             ax['El'] = elevation
         self.setSpeed(ax)
+    
+    def abort(self):
+        for axis in self.Axes:
+            axis.abort()
      
 if __name__ == '__main__':
     if len(sys.argv) < 3 or not len(sys.argv) & 1:
