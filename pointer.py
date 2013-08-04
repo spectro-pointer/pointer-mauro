@@ -158,9 +158,11 @@ class Axis(Thread):
         Thread.__init__(self)
         
         self.PORTS = (step, dir)
+        
         self.lastDir = DIR_CW # default
+        self.dirChangeSteps = [0, 0]
         self.pos = 0.
-        self.dirChangeSteps = (40, 40) # FIXME
+        self.sleep = [0.050, 0.050] # default
         
         self.cv = Condition()
 
@@ -196,6 +198,21 @@ class Axis(Thread):
 
     def shutdown(self):
         Thread.shutdown(self)
+        
+    def set_sleep(self, delay):
+        """ Set step delay
+            In seconds
+        """
+        self.sleep[0] = delay[0]
+        self.sleep[1] = delay[1]
+        
+    def set_dirChangeSteps(self, dirChangeSteps):
+        """ Set step delay
+            In seconds
+        """
+        self.dirChangeSteps[0] = dirChangeSteps[0]
+        self.dirChangeSteps[1] = dirChangeSteps[1]
+
 
     def move(self, steps):
         """Low-level Axis Move Function
@@ -218,13 +235,13 @@ class Axis(Thread):
         # Set dir just once
         GPIO.output(port[1], dir)
         
-        sleep_ON = 0.025
-        sleep_OFF= 0.025
+        sleepOn = self.sleep[0]
+        sleepOff= self.sleep[1]
         # Now process
         changeDirSteps = 0
         for _ in range(int(round(steps))):            
             GPIO.output(port[0], True)
-            time.sleep(sleep_ON) # wait on
+            time.sleep(sleepOn)
            
             GPIO.output(port[0], False)
             
@@ -241,7 +258,7 @@ class Axis(Thread):
                 self.pos -= (dir - 1 * (dir == 0))
             print steps, ',',
             print
-            time.sleep(sleep_OFF) # wait off
+            time.sleep(sleepOff) # wait off
 
 try:
     import RPi.GPIO as GPIO
@@ -255,7 +272,6 @@ class GpioPointer(object):
         # 1. First set up RPi.GPIO
         GPIO.setmode(GPIO.BOARD)
         
-#        self.PORTS= ((8, 10), (13, 15), (3, 5), (7, 11)) # (STEP, DIR) GPIO ports for each axis
         self.PORTS= ((18, 7), (11, 21), (22, 24), (13, 5)) # (STEP, DIR) GPIO ports for each axis
         
         for p in reduce(tuple.__add__, self.PORTS, ()):
@@ -264,92 +280,7 @@ class GpioPointer(object):
             except ValueError:
                 print "Invalid port:", p
                 sys.exit(1)
-        
-        # Threads for each axis
-        self.Axes = []
-        for i, name in enumerate(['X', 'Y', 'Z', 'A']): 
-            self.Axes.append(Axis(self.PORTS[i]))
-            self.Axes[i].name=name
-        
-#        super(GpioPointer, self).__init__()
-        
-    def move2(self, axes):
-        """Low-level Simultaneous Axis Move Function
-           Simultaneously move each axis from 'axes', their given number of steps
-           A negative step is CCW
-        """
-        steps = [0., 0., 0., 0.]
-        ports = {}
-        dir = defaultdict(int)
-        changeDir = [False, False, False, False]
-        for axis, step in axes.items():
-            if (AXIS_X <= axis <= AXIS_A):
-                dir[axis] = DIR_CW
-                if step < 0: 
-                    dir[axis] = DIR_CCW
-                    step = -step
                 
-                steps[axis] = step
-
-                if self.lastDir[axis] != dir[axis]: # change dir offsets
-                    steps[axis] += self.dirChangeSteps[axis][dir[axis]]
-                    changeDir[axis] = True
-                    self.lastDir[axis] = dir[axis]                
-                port=self.PORTS[axis]
-                # Set dir just once
-                GPIO.output(port[1], dir[axis])
-                # Step port
-                ports[axis] = port[0]
-            else:
-                print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir[axis])
-        
-        # Now process
-        changeDirSteps = [0, 0, 0, 0]
-        for _ in range(int(round(max(steps)))):
-            sleep_ON = 0.
-            sleep_OFF= 0.
-            # Process each axis
-            for axis in ports.keys():
-                if steps[axis] > 0.:
-                    sleep_ON  = max(sleep_ON, self.sleep_ON[axis])
-                    sleep_OFF = max(sleep_OFF, self.sleep_OFF[axis])
-                    GPIO.output(ports[axis], True)
-                else:
-                    del ports[axis]
-            
-            time.sleep(sleep_ON) # wait (max) on
-           
-            # Turn off all Remaining Axes
-            for axis in ports.keys():
-                GPIO.output(ports[axis], False)
-            
-            # Absolute steps tracking
-            print 'pos/steps:',
-            for axis in AXIS_X, AXIS_Y, AXIS_Z, AXIS_A:
-                print dir[axis], self.pos[axis], '/',
-                if steps[axis] > 0.:
-                    steps[axis] -= 1
-                    if changeDir[axis]:
-                        if changeDirSteps[axis] < self.dirChangeSteps[axis][dir[axis]]:
-                            print 'changeDir:', changeDirSteps[axis],
-                            changeDirSteps[axis] += 1
-                        else:
-                            self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
-                    else:
-                        self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
-                print steps[axis], ',',
-            print
-            time.sleep(sleep_OFF) # wait (max) off
-        
-    def move3(self, axes):
-        """Low-level Simultaneous Axis Move Function
-           Threaded Version 
-           Simultaneously move each axis from 'axes', their given number of steps
-           A negative step is CCW
-        """
-        for axis, step in axes.items():
-            self.Axes[axis].put_request(step)
-
 class Pointer(GpioPointer):
 #class Pointer(ParallelPointer):
     """Hardware Independent Pointer class"""
@@ -366,10 +297,45 @@ class Pointer(GpioPointer):
         # Dir change adjustment (CW, CCW) for X(El), Y , Z(Az), A
         self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
         self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
-        # Absolute Steps for X(El (90º)), Y, Z(Az), A
-        self.pos = [0., 0., 0., 0.]
         
         super(Pointer, self).__init__()
+        
+        # Threads for each axis
+        self.Axes = []
+        for i, name in enumerate(['X', 'Y', 'Z', 'A']): 
+            self.Axes.append(Axis(self.PORTS[i]))
+            self.Axes[i].name=name
+            self.Axes[i].set_sleep((self.sleep_ON[i], self.sleep_OFF[i]))
+            self.Axes[i].set_dirChangeSteps(self.dirChangeSteps[i])
+
+    def setSpeed(self, axesNames):
+        """ High level speed setting for each axis
+            Speed Units are degrees/second
+        """
+        for axis, speed in axesNames.items():
+            ax = self.axes[axis]
+            # convert to steps/s
+            steps = float(speed) * self.stepAngle[ax]
+            delay = 1./steps
+            self.Axes[ax].set_sleep((delay/2., delay/2.))
+
+    def setDirChangeSteps(self, axesNames):
+        """ High level direction change extra steps for each axis
+            Format is (CW, CCW)
+            Units are steps
+        """
+        for axis, steps in axesNames.items():
+            ax = self.axes[axis]
+            self.Axes[ax].set_dirChangeSteps(steps)
+        
+    def move(self, axes):
+        """High-level Simultaneous Axis Move Function
+           Threaded Version 
+           Simultaneously move each axis from 'axes', their given number of steps
+           A negative step is CCW
+        """
+        for axis, step in axes.items():
+            self.Axes[axis].put_request(step)
 
     def moveAngles(self, axesNames):
         """Simultaneously move each axis from 'axesNames' the given angle
@@ -381,7 +347,7 @@ class Pointer(GpioPointer):
             print axis, angle
             steps = angle / self.stepAngle[self.axes[axis]]
             ax[self.axes[axis]] = int(round(steps))
-        self.move3(ax)
+        self.move(ax)
     
     def moveAzEl(self, azimuth, elevation):
         """Simultaneously move in azimuth and elevation
@@ -406,7 +372,7 @@ class Pointer(GpioPointer):
             print axis, angle, self.pos[axis], steps,  
             ax[axis] = round(steps-self.pos[axis])
             print 'delta:', ax[axis]
-        self.move3(ax)
+        self.move(ax)
         
     def pointAzEl(self, azimuth, elevation):
         """Simultaneously point in azimuth and elevation
