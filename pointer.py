@@ -200,6 +200,10 @@ class Axis(Thread):
         Thread.shutdown(self)
         
     def get_sleep(self):
+        """ Get step delay
+            Format is (ON, OFF)
+            In seconds
+        """
         return self.sleep
     
     def get_dirChangeSteps(self):
@@ -210,7 +214,7 @@ class Axis(Thread):
         
     def set_sleep(self, delay):
         """ Set step delay
-            Format is (CW, CCW)
+            Format is (ON, OFF)
             In seconds
         """
         self.sleep = delay
@@ -325,6 +329,17 @@ class Pointer(GpioPointer):
             self.Axes[i].set_sleep((self.sleep_ON[i], self.sleep_OFF[i]))
             self.Axes[i].set_dirChangeSteps(self.dirChangeSteps[i])
 
+    def getSpeed(self, axesNames):
+        """Get the speed for each axis from 'axesNames'
+           Speeds are in degrees/s
+        """
+        for axis in axesNames.keys():
+            ax = self.axes[axis]
+            delay = self.Axes[ax].get_sleep()
+            speed = 1./(delay[0]+delay[1]) * self.stepAngle[ax]
+            axesNames[axis] = speed
+        return axesNames
+
     def setSpeed(self, axesNames):
         """ High level speed setting for each axis
             Speed Units are degrees/second
@@ -332,7 +347,7 @@ class Pointer(GpioPointer):
         for axis, speed in axesNames.items():
             ax = self.axes[axis]
             # convert to steps/s
-            steps = float(speed) * self.stepAngle[ax]
+            steps = float(speed) / self.stepAngle[ax]
             delay = 1./steps
             self.Axes[ax].set_sleep((delay/2., delay/2.))
 
@@ -444,6 +459,16 @@ class Pointer(GpioPointer):
         ax = self.getAngles(ax)
         return ax['Az'], ax['El']
     
+    def getAzElSpeed(self):
+        """Get actual speed for Azimuth and Elevation axes
+           Returned speeds are in degrees/s
+        """
+        ax=dict()
+        ax['Az'] = 0
+        ax['El'] = 0
+        ax = self.getSpeed(ax)
+        return ax['Az'], ax['El']
+    
     def setAngles(self, axesNames):
         """Set each axis from 'axesNames' to the given angle(step)
            Angles are in degrees
@@ -480,7 +505,18 @@ class Pointer(GpioPointer):
         ax=dict()
         ax['El'] = elevation
         self.setAngles(ax)
-                 
+        
+    def setAzElSpeed(self, azimuth=0., elevation=0.):
+        """Set Azimuth and Elevation axes speed
+           Speeds are in degrees/s
+        """
+        ax=dict()
+        if azimuth != 0.:
+            ax['Az'] = azimuth
+        if elevation != 0.:
+            ax['El'] = elevation
+        self.setSpeed(ax)
+     
 if __name__ == '__main__':
     if len(sys.argv) < 3 or not len(sys.argv) & 1:
         print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {Az|El|X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]

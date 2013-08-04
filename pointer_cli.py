@@ -126,7 +126,7 @@ class Pointer_CLI(object):
                                         func.__doc__.split('\n')[0]))
     print_help.cli_options = ((), ())
 
-    def print_command_help(self, command):
+    def print_command_help(self, pointer, command):
         """Print help about a certain command"""
         doc = self.commands[command].__doc__
         self.tell('\n'.join(l.strip() for l in doc.split('\n')))
@@ -198,6 +198,7 @@ class Pointer_CLI(object):
             
     def set(self, pointer, azimuth=None, elevation=None):
         """Set actual pointer position to the given Azimuth and Elevation [degrees]
+            Defaults: 0., 0.
             For example:
             pointer -e 0 set
         """
@@ -210,22 +211,33 @@ class Pointer_CLI(object):
         else:
             pointer.setAzEl(0., 0.)
     set.cli_options = ((), ('-e', '-a', '-s'))
-
-    def reset(self, pointer):
-        """Reset actual pointer position to zero Azimuth and Elevation [degrees]
+    
+    def getSpeed(self, pointer):
+        """Get actual pointer Azimuth and Elevation axes speed [degrees/s]
             For example:
-            pointer reset
+            pointer getSpeed
         """
-        pointer.setAzEl(0., 0.)
-    reset.cli_options = ((), ('-s'))
+        azimuth, elevation = pointer.getAzElSpeed()
+        self.tell("\nAzimuth Speed: %.2f º/s, " \
+                  "Elevation Speed: %.2f º/s" \
+                  % (azimuth, elevation))
+    getSpeed.cli_options = ((), ('-s'))
 
+    def setSpeed(self, pointer, azimuth=0., elevation=0.):
+        """Set actual pointer speed for the given Azimuth and Elevation speeds [degrees/s]
+            For example:
+            pointer -e 1 setSpeed
+        """
+        pointer.setAzElSpeed(azimuth, elevation)
+    setSpeed.cli_options = ((), ('-e', '-a', '-s'))
+        
     commands = {'move': move,
                 'point': point,
                 'get' : get,
-                'reset' : reset,
+                'getSpeed' : getSpeed,
                 'set' : set,
+                'setSpeed' : setSpeed,
 #                'abort': abort,
-#                'set_speed': set_speed,
 #                'set_change_dir_adj:' change_dir_adj,
                 'help': print_help,
                 'serve': serve}

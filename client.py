@@ -141,6 +141,17 @@ class RPCPointer(object):
         """Sets Elevation."""
         return self.cli.setEl(elevation)
     
+    @handle_xmlfault()
     def setAzEl(self, azimuth, elevation):
         """Points."""
         return self.cli.setAzEl(azimuth, elevation)
+    
+    @handle_xmlfault()
+    def getAzElSpeed(self):
+        """Gets actual Azimuth and Elevation speeds."""
+        azimuth, elevation = self.cli.getAzElSpeed()
+        return azimuth, elevation
+
+    def setAzElSpeed(self, azimuth, elevation):
+        """Sets Speeds."""
+        return self.cli.setAzElSpeed(azimuth, elevation)
