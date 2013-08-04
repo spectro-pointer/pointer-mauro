@@ -1,21 +1,23 @@
+- OOP
+	Parallel uses threaded axes
+	Pointer/Axes abstractions
+		Parallel/GPIOAxis?
+		
 - General
     Fix Z stuck
-        better construction(Gustavo)
+        better construction
         grease
         right torque in screws
 
 - server:
-    buffered commands(mq)
-    	see pyrit's 'enqueue'
-        priority/cancel(mq bypass/erase)
-    		abort command
+    threaded commands
+		abort command
 
     dir change auto adjust
     	based on webcam image movement
     usb webcam
     	compass
-    	level    	
-
+    	level
     	target tracking
 
     config
@@ -43,7 +45,7 @@ Functions:
 			set lat/long
 			conversion to Az/El
 		Earth rotation compensation
-			obtain ntp time
+			ntp time
 	- Target tracking
 		moving target detection
 			webcam based
@@ -64,5 +66,6 @@ GUI:
 		webcam based
 	
 Raspberry Pi
-	GPIO EightIO driver
+	serial driver
+		GPS reading
 	webcam driver
