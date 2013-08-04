@@ -1,8 +1,11 @@
 #!/bin/bash
-# Takes a fram from the Quickcam Express webcam to identify North in the Compass
+# Takes a frame from the webcam
+# to try to identify North in the Compass
 
 # start webcam
 #modprobe quickcam
+
+BASE=~mauro/projects/pointer
 
 mkdir -p $BASE/capture
 
