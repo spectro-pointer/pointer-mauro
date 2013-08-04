@@ -309,32 +309,109 @@ class GpioPointer(object):
                 print "Invalid port:", p
                 sys.exit(1)
                 
-class Pointer(GpioPointer):
 #class Pointer(ParallelPointer):
+class Pointer(GpioPointer):
     """Hardware Independent Pointer class"""
     def __init__(self):
-        self.axes = {'Az': AXIS_Z, 'El': AXIS_X, 'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
+        self.axes = {'X': AXIS_X, 'Y': AXIS_Y, 'Z': AXIS_Z, 'A': AXIS_A}
 
-        # Angles to Steps conversions
-        self.stepAngle = [360./2980, 0., 90./340, 0.]
-        
         # Faster means less torque for X(El), Y, Z(Az), A
         # FIXME: read all from config
         self.sleep_ON  = (.005, .0075, .020, .0025)
         self.sleep_OFF = (.005, .0075, .020, .0025)
+        
         # Dir change adjustment (CW, CCW) for X(El), Y , Z(Az), A
         self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
         self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
         
         super(Pointer, self).__init__()
         
-        # Threads for each axis
+        # Create and Initialize Threads for each axis
         self.Axes = []
         for i, name in enumerate(['X', 'Y', 'Z', 'A']): 
             self.Axes.append(Axis(self.PORTS[i]))
             self.Axes[i].name=name
             self.Axes[i].set_sleep((self.sleep_ON[i], self.sleep_OFF[i]))
             self.Axes[i].set_dirChangeSteps(self.dirChangeSteps[i])
+
+    def abort(self):
+        for axis in self.Axes:
+            axis.abort()
+     
+    def setDirChangeSteps(self, axesNames):
+        """ High level direction change extra steps for each axis
+            Format is (CW, CCW)
+            Units are steps
+        """
+        for axis, steps in axesNames.items():
+            ax = self.axes[axis]
+            self.Axes[ax].set_dirChangeSteps(steps)
+        
+    def move(self, axes):
+        """High-level Simultaneous Axis Move Function
+           Threaded Version 
+           Simultaneously move each axis from 'axes', their given number of steps
+           A negative step is CCW
+        """
+        for axis, step in axes.items():
+            self.Axes[axis].put_request(step)
+
+class AnglesPointer(Pointer):
+    """Angles Pointer class"""
+    def __init__(self):
+        # Angles to Steps conversions
+        self.stepAngle = [360./2980, 0., 90./340, 0.]
+        
+        super(AnglesPointer, self).__init__()
+        
+    def get(self, axesNames):
+        """Get the angles from each axis from 'axesNames'
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        for axis in axesNames.keys():
+            ax = self.axes[axis]
+            pos = self.Axes[ax].get_pos()
+            angles = pos * self.stepAngle[ax]
+            axesNames[axis] = angles
+        return axesNames
+
+    def set(self, axesNames):
+        """Set each axis from 'axesNames' to the given angle
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        for axis, angle in axesNames.items():
+            axis = self.axes[axis]
+            steps = float(angle) / self.stepAngle[axis]
+            self.Axes[axis].set_pos(steps)
+
+    def move(self, axesNames):
+        """Simultaneously move each axis from 'axesNames' the given angle
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        ax = dict()
+        for axis, angle in axesNames.items():
+            print axis, angle
+            steps = angle / self.stepAngle[self.axes[axis]]
+            ax[self.axes[axis]] = int(round(steps))
+        Pointer.move(self, ax)
+    
+    def point(self, axesNames):
+        """Simultaneously point each axis from 'axesNames' to the given angle
+           Angles are in degrees
+           A negative angle means CCW
+        """
+        ax = dict()
+        for axis, angle in axesNames.items():
+            axis = self.axes[axis]
+            steps = angle / self.stepAngle[axis]
+            pos = self.Axes[axis].get_pos()
+            print axis, angle, pos, steps,  
+            ax[axis] = round(steps-pos)
+            print 'delta:', ax[axis]
+        Pointer.move(self, ax)
 
     def getSpeed(self, axesNames):
         """Get the speed for each axis from 'axesNames'
@@ -358,37 +435,15 @@ class Pointer(GpioPointer):
             delay = 1./steps
             self.Axes[ax].set_sleep((delay/2., delay/2.))
 
-    def setDirChangeSteps(self, axesNames):
-        """ High level direction change extra steps for each axis
-            Format is (CW, CCW)
-            Units are steps
-        """
-        for axis, steps in axesNames.items():
-            ax = self.axes[axis]
-            self.Axes[ax].set_dirChangeSteps(steps)
-        
-    def move(self, axes):
-        """High-level Simultaneous Axis Move Function
-           Threaded Version 
-           Simultaneously move each axis from 'axes', their given number of steps
-           A negative step is CCW
-        """
-        for axis, step in axes.items():
-            self.Axes[axis].put_request(step)
+class AzElPointer(AnglesPointer):
+    """Azimuth/Elevation Pointer class"""
+    def __init__(self):
+        super(AzElPointer, self).__init__()
 
-    def moveAngles(self, axesNames):
-        """Simultaneously move each axis from 'axesNames' the given angle
-           Angles are in degrees
-           A negative angle means CCW
-        """
-        ax = dict()
-        for axis, angle in axesNames.items():
-            print axis, angle
-            steps = angle / self.stepAngle[self.axes[axis]]
-            ax[self.axes[axis]] = int(round(steps))
-        self.move(ax)
-    
-    def moveAzEl(self, azimuth, elevation):
+        self.axes['Az'] = AXIS_Z
+        self.axes['El'] = AXIS_X
+
+    def move(self, azimuth, elevation):
         """Simultaneously move in azimuth and elevation
            Angles are in degrees
            A negative angle means CCW
@@ -397,24 +452,9 @@ class Pointer(GpioPointer):
         ax=dict()
         for axis, angles in zip(('Az', 'El'), (azimuth, elevation)): 
             ax[axis] = float(angles)
-        self.moveAngles(ax)
-
-    def pointAngles(self, axesNames):
-        """Simultaneously point each axis from 'axesNames' to the given angle
-           Angles are in degrees
-           A negative angle means CCW
-        """
-        ax = dict()
-        for axis, angle in axesNames.items():
-            axis = self.axes[axis]
-            steps = angle / self.stepAngle[axis]
-            pos = self.Axes[axis].get_pos()
-            print axis, angle, pos, steps,  
-            ax[axis] = round(steps-pos)
-            print 'delta:', ax[axis]
-        self.move(ax)
+        AnglesPointer.move(self, ax)
         
-    def pointAzEl(self, azimuth, elevation):
+    def point(self, azimuth, elevation):
         """Simultaneously point in azimuth and elevation
            Angles are in degrees
            A negative angle means CCW
@@ -423,7 +463,7 @@ class Pointer(GpioPointer):
         ax=dict()
         for axis, angles in zip(('Az', 'El'), (azimuth, elevation)): 
             ax[axis] = float(angles)
-        self.pointAngles(ax)
+        AnglesPointer.point(self, ax)
         
     def pointAz(self, azimuth):
         """Only point in Azimuth, leaving Elevation unchanged
@@ -432,7 +472,7 @@ class Pointer(GpioPointer):
         """
         ax=dict()
         ax['Az'] = float(azimuth)
-        self.pointAngles(ax)
+        AnglesPointer.point(self, ax)
         
     def pointEl(self, elevation):
         """Only point in Elevation, leaving Azimuth unchanged
@@ -441,21 +481,9 @@ class Pointer(GpioPointer):
         """
         ax=dict()
         ax['El'] = float(elevation)
-        self.pointAngles(ax)
+        AnglesPointer.point(self, ax)
 
-    def getAngles(self, axesNames):
-        """Get each axis from 'axesNames' to the given angle(step)
-           Angles are in degrees
-           A negative angle means CCW
-        """
-        for axis in axesNames.keys():
-            ax = self.axes[axis]
-            pos = self.Axes[ax].get_pos()
-            angles = pos * self.stepAngle[ax]
-            axesNames[axis] = angles
-        return axesNames
-
-    def getAzEl(self):
+    def get(self):
         """Get actual absolute Azimuth and Elevation angles
            Returned angles are in degrees
            A negative angle means CCW
@@ -463,30 +491,20 @@ class Pointer(GpioPointer):
         ax=dict()
         ax['Az'] = 0
         ax['El'] = 0
-        ax = self.getAngles(ax)
+        ax = AnglesPointer.get(self, ax)
         return ax['Az'], ax['El']
     
-    def getAzElSpeed(self):
+    def getSpeed(self):
         """Get actual speed for Azimuth and Elevation axes
            Returned speeds are in degrees/s
         """
         ax=dict()
         ax['Az'] = 0
         ax['El'] = 0
-        ax = self.getSpeed(ax)
+        ax = AnglesPointer.getSpeed(self, ax)
         return ax['Az'], ax['El']
     
-    def setAngles(self, axesNames):
-        """Set each axis from 'axesNames' to the given angle(step)
-           Angles are in degrees
-           A negative angle means CCW
-        """
-        for axis, angle in axesNames.items():
-            axis = self.axes[axis]
-            steps = float(angle) / self.stepAngle[axis]
-            self.Axes[axis].set_pos(steps)
-
-    def setAzEl(self, azimuth=0., elevation=0.):
+    def set(self, azimuth=0., elevation=0.):
         """Set absolute Azimuth and Elevation to actual azimuth/elevation angles
            Used for pointer reset
            Angles are in degrees
@@ -502,7 +520,7 @@ class Pointer(GpioPointer):
         """
         ax=dict()
         ax['Az'] = azimuth
-        self.setAngles(ax)
+        AnglesPointer.set(self, ax)
         
     def setEl(self, elevation=0.):
         """Set absolute Elevation to actual elevation axis position, leaving azimuth axis unchanged
@@ -511,9 +529,9 @@ class Pointer(GpioPointer):
         """
         ax=dict()
         ax['El'] = elevation
-        self.setAngles(ax)
+        AnglesPointer.set(self, ax)
         
-    def setAzElSpeed(self, azimuth=0., elevation=0.):
+    def setSpeed(self, azimuth=0., elevation=0.):
         """Set Azimuth and Elevation axes speed
            Speeds are in degrees/s
         """
@@ -522,22 +540,18 @@ class Pointer(GpioPointer):
             ax['Az'] = azimuth
         if elevation != 0.:
             ax['El'] = elevation
-        self.setSpeed(ax)
+        AnglesPointer.setSpeed(self, ax)
     
-    def abort(self):
-        for axis in self.Axes:
-            axis.abort()
-     
 if __name__ == '__main__':
     if len(sys.argv) < 3 or not len(sys.argv) & 1:
-        print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {Az|El|X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
+        print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
         sys.exit(1)
     
-    pointer = Pointer()
+    pointer = AnglesPointer()
 
     # Concurrent movements
     ax=dict()
     for axis, angles in zip(sys.argv[1::2], sys.argv[2::2]): 
         ax[axis] = float(angles)
-    pointer.moveAngles(ax)
+    pointer.move(ax)
     time.sleep(3) # give time to the threads to process the requests

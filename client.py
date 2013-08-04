@@ -106,9 +106,14 @@ class RPCPointer(object):
         return self.cli.getStats()
 
     @handle_xmlfault()
-    def moveAzEl(self, azimuth, elevation):
+    def move(self, azimuth, elevation):
         """Moves."""
-        return self.cli.moveAzEl(azimuth, elevation)
+        return self.cli.move(azimuth, elevation)
+    
+    @handle_xmlfault()
+    def point(self, azimuth, elevation):
+        """Points."""
+        return self.cli.point(azimuth, elevation)
     
     @handle_xmlfault()
     def pointAz(self, azimuth):
@@ -121,16 +126,16 @@ class RPCPointer(object):
         return self.cli.pointEl(elevation)
     
     @handle_xmlfault()
-    def pointAzEl(self, azimuth, elevation):
-        """Points."""
-        return self.cli.pointAzEl(azimuth, elevation)
-    
-    @handle_xmlfault()
-    def getAzEl(self):
+    def get(self):
         """Gets actual Azimuth and Elevation angles."""
-        azimuth, elevation = self.cli.getAzEl()
+        azimuth, elevation = self.cli.get()
         return azimuth, elevation
         
+    @handle_xmlfault()
+    def set(self, azimuth, elevation):
+        """Sets Azimuth and Elevation."""
+        return self.cli.set(azimuth, elevation)
+    
     @handle_xmlfault()
     def setAz(self, azimuth):
         """Sets Azimuth."""
@@ -142,20 +147,15 @@ class RPCPointer(object):
         return self.cli.setEl(elevation)
     
     @handle_xmlfault()
-    def setAzEl(self, azimuth, elevation):
-        """Points."""
-        return self.cli.setAzEl(azimuth, elevation)
-    
-    @handle_xmlfault()
-    def getAzElSpeed(self):
+    def getSpeed(self):
         """Gets actual Azimuth and Elevation speeds."""
-        azimuth, elevation = self.cli.getAzElSpeed()
+        azimuth, elevation = self.cli.getSpeed()
         return azimuth, elevation
 
     @handle_xmlfault()
-    def setAzElSpeed(self, azimuth, elevation):
+    def setSpeed(self, azimuth, elevation):
         """Sets Speeds."""
-        return self.cli.setAzElSpeed(azimuth, elevation)
+        return self.cli.setSpeed(azimuth, elevation)
 
     @handle_xmlfault()
     def abort(self):

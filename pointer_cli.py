@@ -101,7 +101,7 @@ class Pointer_CLI(object):
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
         else: # local pointer
-            options['pointer'] = pointer.Pointer()
+            options['pointer'] = pointer.AzElPointer()
         
         func(self, **options)
 
@@ -167,7 +167,7 @@ class Pointer_CLI(object):
             pointer -a 45 move
             pointer -e 15 move
         """
-        pointer.moveAzEl(azimuth, elevation)
+        pointer.move(azimuth, elevation)
     move.cli_options = ((), ('-e', '-a', '-s'))
 
     def point(self, pointer, azimuth=None, elevation=None):
@@ -180,9 +180,9 @@ class Pointer_CLI(object):
         elif azimuth is not None and elevation is None:
             pointer.pointAz(azimuth)
         elif azimuth is not  None and elevation is not None:
-            pointer.pointAzEl(azimuth, elevation)
+            pointer.point(azimuth, elevation)
         else:
-            pointer.pointAzEl(0., 0.)
+            pointer.point(0., 0.)
     point.cli_options = ((), ('-e', '-a', '-s'))
 
     def get(self, pointer):
@@ -190,7 +190,7 @@ class Pointer_CLI(object):
             For example:
             pointer get
         """
-        azimuth, elevation = pointer.getAzEl()
+        azimuth, elevation = pointer.get()
         self.tell("\nAzimuth: %.2f, " \
                   "Elevation: %.2f" \
                   % (azimuth, elevation))
@@ -207,9 +207,9 @@ class Pointer_CLI(object):
         elif azimuth is not None and elevation is None:
             pointer.setAz(azimuth)
         elif azimuth is not  None and elevation is not None:
-            pointer.setAzEl(azimuth, elevation)
+            pointer.set(azimuth, elevation)
         else:
-            pointer.setAzEl(0., 0.)
+            pointer.set(0., 0.)
     set.cli_options = ((), ('-e', '-a', '-s'))
     
     def getSpeed(self, pointer):
@@ -217,7 +217,7 @@ class Pointer_CLI(object):
             For example:
             pointer getSpeed
         """
-        azimuth, elevation = pointer.getAzElSpeed()
+        azimuth, elevation = pointer.getSpeed()
         self.tell("\nAzimuth Speed: %.2f º/s, " \
                   "Elevation Speed: %.2f º/s" \
                   % (azimuth, elevation))
@@ -228,7 +228,7 @@ class Pointer_CLI(object):
             For example:
             pointer -e 1 setSpeed
         """
-        pointer.setAzElSpeed(azimuth, elevation)
+        pointer.setSpeed(azimuth, elevation)
     setSpeed.cli_options = ((), ('-e', '-a', '-s'))
 
     def abort(self, pointer):

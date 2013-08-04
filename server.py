@@ -39,50 +39,48 @@ class ServerError(IOError):
     pass
 
 class PointerServer(util.AsyncXMLRPCServer):
-
     def __init__(self, pointer, iface='', port=17936):
         util.AsyncXMLRPCServer.__init__(self, (iface, port))
-        self.methods['moveAzEl'] = self.moveAzEl
+        self.methods['move'] = self.move
+        self.methods['point'] = self.point
         self.methods['pointAz'] = self.pointAz
         self.methods['pointEl'] = self.pointEl
-        self.methods['pointAzEl'] = self.pointAzEl
-        self.methods['getAzEl'] = self.getAzEl
+        self.methods['get'] = self.get
+        self.methods['set'] = self.set
         self.methods['setAz'] = self.setAz
         self.methods['setEl'] = self.setEl
-        self.methods['setAzEl'] = self.setAzEl
-        self.methods['getAzElSpeed'] = self.getAzElSpeed
-        self.methods['setAzElSpeed'] = self.setAzElSpeed
+        self.methods['getSpeed'] = self.getSpeed
+        self.methods['setSpeed'] = self.setSpeed
         self.methods['abort'] = self.abort
         self.pointer = pointer
         self.start()
-    def moveAzEl(self, azimuth, elevation):
-        self.pointer.moveAzEl(azimuth, elevation)
+    def move(self, azimuth, elevation):
+        self.pointer.move(azimuth, elevation)
         return True
-    
     def pointAz(self, azimuth):
         self.pointer.pointAz(azimuth)
         return True
     def pointEl(self, elevation):
         self.pointer.pointEl(elevation)
         return True
-    def pointAzEl(self, azimuth, elevation):
-        self.pointer.pointAzEl(azimuth, elevation)
+    def point(self, azimuth, elevation):
+        self.pointer.point(azimuth, elevation)
         return True
-    def getAzEl(self):
-        return self.pointer.getAzEl()
+    def get(self):
+        return self.pointer.get()
     def setAz(self, azimuth):
         self.pointer.setAz(azimuth)
         return True
     def setEl(self, elevation):
         self.pointer.setEl(elevation)
         return True
-    def setAzEl(self, azimuth, elevation):
-        self.pointer.setAzEl(azimuth, elevation)
+    def set(self, azimuth, elevation):
+        self.pointer.set(azimuth, elevation)
         return True
-    def getAzElSpeed(self):
-        return self.pointer.getAzElSpeed()
-    def setAzElSpeed(self, azimuth, elevation):
-        self.pointer.setAzElSpeed(azimuth, elevation)
+    def getSpeed(self):
+        return self.pointer.getSpeed()
+    def setSpeed(self, azimuth, elevation):
+        self.pointer.setSpeed(azimuth, elevation)
         return True
     def abort(self):
         self.pointer.abort()

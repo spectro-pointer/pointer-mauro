@@ -5,17 +5,17 @@
         right torque in screws
 
 - OOP
-	Parallel uses threaded axes
 	Pointer/Axes abstractions
 		Parallel/GPIOAxis?
+    
     Refactoring
         AzElPointer
         RaDecPointer
         ...
+
+	Parallel with threaded axes
 		
-- server:
-    threaded commands
-		abort command
+- pointer server:
 	duty cycle
     dir change auto adjust
     	based on webcam image movement?
@@ -23,7 +23,6 @@
     	compass
     	level
     	target tracking
-
     config
         server-side config file
         	see pyrit's config
