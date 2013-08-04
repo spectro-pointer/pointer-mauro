@@ -542,16 +542,17 @@ class AzElPointer(AnglesPointer):
             ax['El'] = elevation
         AnglesPointer.setSpeed(self, ax)
     
-if __name__ == '__main__':
-    if len(sys.argv) < 3 or not len(sys.argv) & 1:
-        print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
-        sys.exit(1)
-    
-    pointer = AnglesPointer()
-
-    # Concurrent movements
-    ax=dict()
-    for axis, angles in zip(sys.argv[1::2], sys.argv[2::2]): 
-        ax[axis] = float(angles)
-    pointer.move(ax)
-    time.sleep(3) # give time to the threads to process the requests
+#if __name__ == '__main__':
+#    if len(sys.argv) < 3 or not len(sys.argv) & 1:
+#        print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
+#        sys.exit(1)
+#    
+#    pointer = AnglesPointer()
+#
+#    # Concurrent movements
+#    ax=dict()
+#    for axis, angles in zip(sys.argv[1::2], sys.argv[2::2]): 
+#        ax[axis] = float(angles)
+#    pointer.move(ax)
+#    # FIXME: Wait for threads to finish/Ordered threads shutdown
+#    time.sleep(3) # give time to the threads to process the requests
