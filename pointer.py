@@ -410,6 +410,10 @@ class AnglesPointer(Pointer):
             pos = self.Axes[axis].get_pos()
             print axis, angle, pos, steps,  
             ax[axis] = round(steps-pos)
+            if ax[axis] > self.stepAngle[axis]/2:
+                ax[axis] -= self.stepAngle[axis]
+            if ax[axis] < -self.stepAngle[axis]/2:
+                ax[axis] += self.stepAngle[axis]
             print 'delta:', ax[axis]
         Pointer.move(self, ax)
 
@@ -546,7 +550,6 @@ class AzElPointer(AnglesPointer):
         AnglesPointer.setSpeed(self, ax)
 
 import sidereal
-import dateutil
 import time
 import datetime
 from math import radians, degrees
