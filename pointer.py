@@ -360,7 +360,8 @@ class AnglesPointer(Pointer):
     """Angles Pointer class"""
     def __init__(self):
         # Angles to Steps conversions
-        self.stepAngle = [360./2980, 0., 90./340, 0.]
+        self.steps = [2980, 0, 1360, 0]
+        self.stepAngle = [360./self.steps[0], 0., 360./self.steps[2], 0.]
         
         super(AnglesPointer, self).__init__()
         
@@ -410,10 +411,10 @@ class AnglesPointer(Pointer):
             pos = self.Axes[axis].get_pos()
             print axis, angle, pos, steps,  
             ax[axis] = round(steps-pos)
-            if ax[axis] > self.stepAngle[axis]/2:
-                ax[axis] -= self.stepAngle[axis]
-            if ax[axis] < -self.stepAngle[axis]/2:
-                ax[axis] += self.stepAngle[axis]
+            if ax[axis] > self.steps[axis]/2:
+                ax[axis] -= self.steps[axis]
+            if ax[axis] < -self.steps[axis]/2:
+                ax[axis] += self.steps[axis]
             print 'delta:', ax[axis]
         Pointer.move(self, ax)
 
