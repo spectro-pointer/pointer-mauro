@@ -101,7 +101,7 @@ class Pointer_CLI(object):
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
         else: # local pointer
-            options['pointer'] = pointer.AzElPointer()
+            options['pointer'] = pointer.RAdecPointer()
         
         func(self, **options)
 
@@ -197,7 +197,7 @@ class Pointer_CLI(object):
     get.cli_options = ((), ('-s'))
             
     def set(self, pointer, azimuth=None, elevation=None):
-        """Set actual pointer position to the given Azimuth and Elevation [degrees]
+        """Set pointer position to the given Azimuth and Elevation [degrees]
             Defaults: 0., 0.
             For example:
             pointer -e 0 set
@@ -224,7 +224,7 @@ class Pointer_CLI(object):
     getSpeed.cli_options = ((), ('-s'))
 
     def setSpeed(self, pointer, azimuth=0., elevation=0.):
-        """Set actual pointer speed for the given Azimuth and Elevation speeds [degrees/s]
+        """Set pointer speed to the given Azimuth and Elevation speeds [degrees/s]
             For example:
             pointer -e 1 setSpeed
         """

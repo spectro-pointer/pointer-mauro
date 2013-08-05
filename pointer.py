@@ -436,7 +436,10 @@ class AnglesPointer(Pointer):
             self.Axes[ax].set_sleep((delay/2., delay/2.))
 
 class AzElPointer(AnglesPointer):
-    """Azimuth/Elevation Pointer class"""
+    """Azimuth/Elevation Pointer class
+       0º Azimuth is North. Azimuth is positive eastward
+       Angles are in degrees
+    """
     def __init__(self):
         super(AzElPointer, self).__init__()
 
@@ -541,7 +544,81 @@ class AzElPointer(AnglesPointer):
         if elevation != 0.:
             ax['El'] = elevation
         AnglesPointer.setSpeed(self, ax)
-    
+
+import sidereal
+import dateutil
+import time
+import datetime
+from math import radians, degrees
+#from rdaa import
+ 
+class RAdecPointer(AzElPointer):
+    """Right Ascension/Declination Pointer class"""
+    def __init__(self):
+        super(RAdecPointer, self).__init__()
+        
+        """ Observer's latitude and longitude, in degrees
+            Longitude is positive eastward
+        """
+        self.lat = -41.14
+        self.lon = -71.32
+
+    def _parseRA(self, ra):
+        """Parse a Right Ascension and return the equivalent hours
+           Right Ascension format is "HHMMSS.sss"
+        """
+        hour   = float(ra[0:2])
+        minute = float(ra[2:4])
+        second = float(ra[4:])
+        print 'hour:', hour
+        print 'minute:', minute
+        print 'second:', second
+        return hour+minute/60.+second/3600.
+
+    def getLatLon(self):
+        return self.lat, self.lon
+
+    def setLatLon(self, lat, lon):
+        self.lat = lat
+        self.lon = lon
+        
+    def get(self):
+        """ Get actual RA and Dec values
+        """
+        Az, Alt = AzElPointer.get(self)
+        
+        # convert to RA/dec
+        AltAz = sidereal.AltAz(radians(Alt), radians(Az))
+        
+        dt = datetime.datetime.utcnow()
+        lst = sidereal.SiderealTime.fromDatetime(dt).lst(radians(self.lon))
+        latLon = sidereal.LatLon(radians(self.lat), radians(self.lon))
+        RAdec = AltAz.raDec(lst, latLon)
+        return degrees(RAdec.ra), degrees(RAdec.dec)
+              
+    def point(self, ra, dec):
+        """Simultaneously point in Right Ascension and declination
+           Right Ascension format is "HHMMSS.sss"
+           Declination Angle is in degrees
+        """
+        # Convert RA string to hours
+        print 'RA:', ra, 'dec:', dec
+        hours = self._parseRA(str(ra))
+        print 'hours:', hours
+        
+        # Convert hours to radians
+        ra = sidereal.hoursToRadians(hours)
+        print 'RA(radians):', ra
+        # Convert to azimuth and elevation
+        RADec = sidereal.RADec(ra, radians(float(dec)))
+        ut = datetime.datetime.utcnow()
+        h = sidereal.raToHourAngle(ra, ut, radians(self.lon))
+        AltAz = RADec.altAz(h, radians(self.lat))
+        az = degrees(AltAz.az);
+        el = degrees(AltAz.alt)
+        print 'Azimuth:', az, 'Elevation:', el
+        AzElPointer.point(self, az, el)
+        
 #if __name__ == '__main__':
 #    if len(sys.argv) < 3 or not len(sys.argv) & 1:
 #        print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
