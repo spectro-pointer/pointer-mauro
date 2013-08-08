@@ -7,16 +7,31 @@
 - OOP
 	Pointer/Axes abstractions
 		Parallel/GPIOAxis?
-    
-    Refactoring
-        AzElPointer
-        RaDecPointer
-        ...
+    	Parallel with threaded axes
+    	
+    	AzEl/RAdec coexistence
+    		pointer methods
+    		xmlrpc methods
+    		-a -e/-r -d client selection
 
-	Parallel with threaded axes
-		
+- GUI:
+	Settings
+	Telescope pointing
+	Window sweeping
+	Moving target tracking
+		webcam based
+	
+- Raspberry Pi
+	serial driver
+		GPS reading
+	webcam
+		Logitech driver
+		Pi supported webcam driver
+
+	accelerometer
+	
 - pointer server:
-	duty cycle
+	duty cycle?
     dir change auto adjust
     	based on webcam image movement?
     usb webcam
@@ -44,11 +59,14 @@
         
 Functions:
 	- Telescope pointing
-		RA/Dec settings
-			set lat/long
-			conversion to Az/El
+		RA/Dec
+			lat/lon
+				setting/getting
+				GPS based
 		Earth rotation compensation
 			ntp time
+		stellarium telescope motorization interface	
+		
 	- Target tracking
 		moving target detection
 			webcam based
@@ -60,15 +78,3 @@ Functions:
 		custom speeds
 		
 	- Mouse tracking (GUI)
-
-GUI:
-	Settings
-	Telescope pointing
-	Window sweeping
-	Moving target tracking
-		webcam based
-	
-Raspberry Pi
-	serial driver
-		GPS reading
-	webcam driver
