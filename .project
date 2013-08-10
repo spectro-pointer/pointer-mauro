@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>CNC</name>
+	<name>pointer</name>
 	<comment></comment>
 	<projects>
+		<project>pointer</project>
+		<project>pyrit</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
