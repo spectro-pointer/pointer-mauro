@@ -58,7 +58,7 @@ class Pointer_CLI(object):
     def initFromArgv(self):
         options = {}
         args, commands = getopt.getopt(sys.argv[1:], \
-                                       'a:e:s:h', \
+                                       'a:e:r:d:s:h', \
                                        ['help'])
         args = dict(args)
 
@@ -82,9 +82,29 @@ class Pointer_CLI(object):
         for arg, value in args.iteritems():
             if arg in req_params or arg in opt_params:
                 if arg == '-a':
-                    options['azimuth'] = value
+                    options['v1'] = value
+                    try:
+                        if options['v2']:
+                            options['coords'] = 'AzEl'
+                    except KeyError:
+                        options['coords'] = 'Az'
                 elif arg == '-e':
-                    options['elevation'] = value
+                    options['v2'] = value
+                    try:
+                        if options['v1']:
+                            options['coords'] = 'AzEl'
+                    except KeyError: 
+                        options['coords'] = 'El'
+                elif arg == '-r':
+                    options['v1'] = value
+                    options['coords'] = 'RAdec'
+                elif arg == '-d':
+                    options['v2'] = value
+                    options['coords'] = 'RAdec'
+                elif arg == '--lat':
+                    options['lat'] = value
+                elif arg == '--lon':
+                    options['lon'] = value
                 elif arg == '-c':
                     options['command'] = value
             else:
@@ -101,7 +121,7 @@ class Pointer_CLI(object):
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
         else: # local pointer
-            options['pointer'] = pointer.RAdecPointer()
+            options['pointer'] = pointer.GenericPointer()
         
         func(self, **options)
 
@@ -116,6 +136,10 @@ class Pointer_CLI(object):
             '\n  -h|--help        : Print help for a certain command'
             "\n  -a               : Azimuth in degrees"
             "\n  -e               : Elevation in degrees"
+            "\n  -r               : Right Ascension in HHMMSS.sss format"
+            "\n  -d               : Declination in degrees"
+            "\n  --lat            : Latitude in degrees (negative is South latitude)"
+            "\n  --lon            : Longitude in degrees (positive is East longitude)"
             '\n  -s               : IP/hostname of the server to use'
             '\n'
             '\nRecognized commands:')
@@ -149,7 +173,7 @@ class Pointer_CLI(object):
            pointer serve
 
           ... and the client:
-          pointer -s http://192.168.0.100:17936 -a 1 -e 2 point
+          pointer -s 192.168.0.100 get
         """
         with server.PointerServer(pointer) as rpcd:
             self.tell("Server started...")
@@ -160,57 +184,75 @@ class Pointer_CLI(object):
         self.tell("Server closed")
     serve.cli_options = ((), ())
 
-    def move(self, pointer, azimuth=0, elevation=0):
-        """Relative move the given Azimuth and Elevation [degrees]
+    def move(self, pointer, coords=None, v1=0, v2=0):
+        """Relative move the given Coords (Azimuth and Elevation [degrees],
+            or Right Ascension [HHMMSS.sss] and Declination [degrees])
             For example:
             pointer -a 10 -e 5 move
             pointer -a 45 move
             pointer -e 15 move
+            pointer -r 123456.789 -d 1.23 move
         """
-        pointer.move(azimuth, elevation)
-    move.cli_options = ((), ('-e', '-a', '-s'))
+        print 'coords:', coords
+        if coords is not None:
+            pointer.move(coords, v1, v2)
+        else:
+            pointer.move('AzEl', v1, v2)
+    move.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
 
-    def point(self, pointer, azimuth=None, elevation=None):
-        """Absolute move to the given Azimuth and Elevation [degrees]
+    def point(self, pointer, coords=None, v1=None, v2=None):
+        """Absolute move to the given Coords (Azimuth and Elevation [degrees],
+            or Right Ascension [HHMMSS.sss] and Declination [degrees])
+            Defaults: Azimuth: 0º, Elevation: 0º
             For example:
             pointer -e 15 point
+            pointer -r 120000.01 -d 45 point
         """
-        if azimuth is None and elevation is not None:
-            pointer.pointEl(elevation)
-        elif azimuth is not None and elevation is None:
-            pointer.pointAz(azimuth)
-        elif azimuth is not  None and elevation is not None:
-            pointer.point(azimuth, elevation)
+        print 'coords:', coords
+        if coords is not None:
+            pointer.point(coords, v1, v2)
         else:
-            pointer.point(0., 0.)
-    point.cli_options = ((), ('-e', '-a', '-s'))
+            pointer.point('AzEl', v1, v2)
+#        if v1 is None and v2 is not None:
+#            pointer.pointEl(v2)
+#        elif v1 is not None and v2 is None:
+#            pointer.pointAz(v1)
+#        elif v1 is not  None and v2 is not None:
+#            pointer.point(v1, v2)
+#        else:
+#            pointer.point(0., 0.)
+    point.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
 
     def get(self, pointer):
         """Get actual pointer Azimuth and Elevation angles [degrees]
+            and Right Ascension and Declination angles [degrees] 
             For example:
             pointer get
         """
-        azimuth, elevation = pointer.get()
+        v1, v2 = pointer.get('AzEl')
         self.tell("\nAzimuth: %.2f, " \
                   "Elevation: %.2f" \
-                  % (azimuth, elevation))
+                  % (v1, v2))
+        v1, v2 = pointer.get('RAdec')
+        self.tell("RA: %.2f, " \
+                  "Dec: %.2f" \
+                  % (v1, v2))
     get.cli_options = ((), ('-s'))
             
-    def set(self, pointer, azimuth=None, elevation=None):
-        """Set pointer position to the given Azimuth and Elevation [degrees]
-            Defaults: 0., 0.
+    def set(self, pointer, coords=None, v1=None, v2=None):
+        """Set pointer position to the given Coords (Azimuth and Elevation [degrees],
+            or Right Ascension [HHMMSS.sss] and Declination [degrees])
+            Defaults: Azimuth 0., Elevation 0.
             For example:
-            pointer -e 0 set
+            pointer -e 10 set
+            pointer -r 120000 -d 90 set
         """
-        if azimuth is None and elevation is not None:
-            pointer.setEl(elevation)
-        elif azimuth is not None and elevation is None:
-            pointer.setAz(azimuth)
-        elif azimuth is not  None and elevation is not None:
-            pointer.set(azimuth, elevation)
+        print 'coords:', coords
+        if coords is not None:
+            pointer.set(coords, v1, v2)
         else:
-            pointer.set(0., 0.)
-    set.cli_options = ((), ('-e', '-a', '-s'))
+            pointer.set('AzEl', 0., 0.)
+    set.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
     
     def getSpeed(self, pointer):
         """Get actual pointer Azimuth and Elevation axes speed [degrees/s]
@@ -218,18 +260,38 @@ class Pointer_CLI(object):
             pointer getSpeed
         """
         azimuth, elevation = pointer.getSpeed()
-        self.tell("\nAzimuth Speed: %.2f º/s, " \
-                  "Elevation Speed: %.2f º/s" \
+        self.tell("\nAzimuth Speed: %.2fº/s, " \
+                  "Elevation Speed: %.2fº/s" \
                   % (azimuth, elevation))
     getSpeed.cli_options = ((), ('-s'))
 
-    def setSpeed(self, pointer, azimuth=0., elevation=0.):
-        """Set pointer speed to the given Azimuth and Elevation speeds [degrees/s]
+    def setSpeed(self, pointer, azimuth=1., elevation=1.):
+        """ Set pointer speed to the given Azimuth and Elevation speeds [degrees/s]
+            Defaults: Azimuth: 1º/s, Elevation: 1º/s
             For example:
-            pointer -e 1 setSpeed
+            pointer -e 2 setSpeed
         """
         pointer.setSpeed(azimuth, elevation)
     setSpeed.cli_options = ((), ('-e', '-a', '-s'))
+
+    def getLatLon(self, pointer):
+        """ Get actual pointer Latitude and Longitude settings [degrees]
+            For example:
+            pointer getLatLon
+        """
+        azimuth, elevation = pointer.getLatLon()
+        self.tell("\nLatitude: %.4fº, " \
+                  "Longitude: %.4fº" \
+                  % (azimuth, elevation))
+    getLatLon.cli_options = ((), ('-s'))
+
+    def setLatLon(self, pointer, lat=0., lon=0.):
+        """Set pointer to the given Latitude and Longitude degrees]
+            For example:
+            pointer --lat -41 --lon -72 setLatLon
+        """
+        pointer.setLatLon(lat, lon)
+    setLatLon.cli_options = (('--lat', '--lon'), ('-s'))
 
     def abort(self, pointer):
         """Abort currently executing command
@@ -243,8 +305,10 @@ class Pointer_CLI(object):
                 'point': point,
                 'get' : get,
                 'getSpeed' : getSpeed,
-                'set' : set,
                 'setSpeed' : setSpeed,
+                'getLatLon' : getLatLon,
+                'setLatLon' : setLatLon,
+                'set' : set,
 #                'setChangeDirSteps:' setChangeDirSteps,
                 'abort': abort,
                 'help': print_help,

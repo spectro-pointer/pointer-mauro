@@ -9,11 +9,6 @@
 		Parallel/GPIOAxis?
     	Parallel with threaded axes
     	
-    	AzEl/RAdec coexistence
-    		pointer methods
-    		xmlrpc methods
-    		-a -e/-r -d client selection
-
 - GUI:
 	Settings
 	Telescope pointing
@@ -29,8 +24,12 @@
 		Pi supported webcam driver
 
 	accelerometer
+		python3->2 interface
 	
 - pointer server:
+	- Accelerometer based elevation angle setting
+	- GPS based latitude and longitude settings
+	
 	duty cycle?
     dir change auto adjust
     	based on webcam image movement?
@@ -65,7 +64,8 @@ Functions:
 				GPS based
 		Earth rotation compensation
 			ntp time
-		stellarium telescope motorization interface	
+		
+		stellarium telescope interface	
 		
 	- Target tracking
 		moving target detection

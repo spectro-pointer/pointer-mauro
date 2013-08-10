@@ -102,49 +102,25 @@ class RPCPointer(object):
         self.cli = xmlrpclib.ServerProxy(url)
 
     @handle_xmlfault()
-    def getStats(self):
-        return self.cli.getStats()
-
-    @handle_xmlfault()
-    def move(self, azimuth, elevation):
+    def move(self, coords, v1, v2):
         """Moves."""
-        return self.cli.move(azimuth, elevation)
+        return self.cli.move(coords, v1, v2)
     
     @handle_xmlfault()
-    def point(self, azimuth, elevation):
+    def point(self, coords, v1, v2):
         """Points."""
-        return self.cli.point(azimuth, elevation)
-    
+        return self.cli.point(coords, v1, v2)
+       
     @handle_xmlfault()
-    def pointAz(self, azimuth):
-        """Points in Azimuth."""
-        return self.cli.pointAz(azimuth)
-    
-    @handle_xmlfault()
-    def pointEl(self, elevation):
-        """Points in Elevation."""
-        return self.cli.pointEl(elevation)
-    
-    @handle_xmlfault()
-    def get(self):
+    def get(self, coords):
         """Gets actual Azimuth and Elevation angles."""
-        azimuth, elevation = self.cli.get()
-        return azimuth, elevation
+        c1, c2 = self.cli.get(coords)
+        return c1, c2
         
     @handle_xmlfault()
-    def set(self, azimuth, elevation):
+    def set(self, coords, v1, v2):
         """Sets Azimuth and Elevation."""
-        return self.cli.set(azimuth, elevation)
-    
-    @handle_xmlfault()
-    def setAz(self, azimuth):
-        """Sets Azimuth."""
-        return self.cli.setAz(azimuth)
-    
-    @handle_xmlfault()
-    def setEl(self, elevation):
-        """Sets Elevation."""
-        return self.cli.setEl(elevation)
+        return self.cli.set(coords, v1, v2)
     
     @handle_xmlfault()
     def getSpeed(self):
@@ -156,6 +132,17 @@ class RPCPointer(object):
     def setSpeed(self, azimuth, elevation):
         """Sets Speeds."""
         return self.cli.setSpeed(azimuth, elevation)
+
+    @handle_xmlfault()
+    def getLatLon(self):
+        """Gets actual Azimuth and Elevation speeds."""
+        lat, lon = self.cli.getLatLon()
+        return lat, lon
+
+    @handle_xmlfault()
+    def setLatLon(self, lat, lon):
+        """Sets Speeds."""
+        return self.cli.setLatLon(lat, lon)
 
     @handle_xmlfault()
     def abort(self):

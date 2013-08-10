@@ -579,6 +579,25 @@ class RAdecPointer(AzElPointer):
         print 'minute:', minute
         print 'second:', second
         return hour+minute/60.+second/3600.
+    
+    def _RAdec2AzEl(self, ra, dec):
+        # Convert RA string to hours
+        print 'RA:', ra, 'dec:', dec
+        hours = self._parseRA(str(ra))
+        print 'hours:', hours
+        
+        # Convert hours to radians
+        ra = sidereal.hoursToRadians(hours)
+        print 'RA(radians):', ra
+        # Convert to azimuth and elevation
+        RADec = sidereal.RADec(ra, radians(float(dec)))
+        ut = datetime.datetime.utcnow()
+        h = sidereal.raToHourAngle(ra, ut, radians(self.lon))
+        AltAz = RADec.altAz(h, radians(self.lat))
+        az = degrees(AltAz.az);
+        el = degrees(AltAz.alt)
+        print 'Azimuth:', az, 'Elevation:', el
+        return az, el
 
     def getLatLon(self):
         return self.lat, self.lon
@@ -600,29 +619,74 @@ class RAdecPointer(AzElPointer):
         latLon = sidereal.LatLon(radians(self.lat), radians(self.lon))
         RAdec = AltAz.raDec(lst, latLon)
         return degrees(RAdec.ra), degrees(RAdec.dec)
+
+    def set(self, ra, dec):
+        """Set Right Ascension and declination
+           Right Ascension format is "HHMMSS.sss"
+           Declination Angle is in degrees
+        """
+        az, el = self._RAdec2AzEl(ra, dec)
+        AzElPointer.set(self, az, el)
+
+    def move(self, ra, dec):
+        """Simultaneously move in Right Ascension and declination
+           Right Ascension format is "HHMMSS.sss"
+           Declination Angle is in degrees
+        """
+        az, el = self._RAdec2AzEl(ra, dec)
+        AzElPointer.move(self, az, el)
               
     def point(self, ra, dec):
         """Simultaneously point in Right Ascension and declination
            Right Ascension format is "HHMMSS.sss"
            Declination Angle is in degrees
         """
-        # Convert RA string to hours
-        print 'RA:', ra, 'dec:', dec
-        hours = self._parseRA(str(ra))
-        print 'hours:', hours
-        
-        # Convert hours to radians
-        ra = sidereal.hoursToRadians(hours)
-        print 'RA(radians):', ra
-        # Convert to azimuth and elevation
-        RADec = sidereal.RADec(ra, radians(float(dec)))
-        ut = datetime.datetime.utcnow()
-        h = sidereal.raToHourAngle(ra, ut, radians(self.lon))
-        AltAz = RADec.altAz(h, radians(self.lat))
-        az = degrees(AltAz.az);
-        el = degrees(AltAz.alt)
-        print 'Azimuth:', az, 'Elevation:', el
+        az, el = self._RAdec2AzEl(ra, dec)
         AzElPointer.point(self, az, el)
+
+class GenericPointer(RAdecPointer):
+    """Generic/Wrapper Pointer class"""
+    def __init__(self):
+        super(GenericPointer, self).__init__()
+
+    def get(self, coords):
+        if coords == 'AzEl':
+            return AzElPointer.get(self)
+        elif coords == 'RAdec':
+            return RAdecPointer.get(self)
+
+    def set(self, coords, v1, v2):
+        print 'coords:', coords
+        if coords == 'AzEl':
+            AzElPointer.set(self, v1, v2)
+        elif coords == 'Az':
+            AzElPointer.setAz(self, v1)
+        elif coords == 'El':
+            AzElPointer.setEl(self, v2)
+        elif coords == 'RAdec':
+            RAdecPointer.set(self, v1, v2)
+
+    def move(self, coords, v1, v2):
+        print 'coords:', coords
+        if coords == 'AzEl':
+            AzElPointer.move(self, v1, v2)
+        elif coords == 'RAdec':
+            RAdecPointer.move(self, v1, v2)
+
+    def point(self, coords, v1, v2):
+        print 'coords:', coords
+        if v1 is None:
+            v1 = 0.
+        if v2 is None:
+            v2 = 0.
+        if coords == 'AzEl':
+            AzElPointer.point(self, v1, v2)
+        elif coords == 'Az':
+            AzElPointer.pointAz(self, v1)
+        elif coords == 'El':
+            AzElPointer.pointEl(self, v2)
+        elif coords == 'RAdec':
+            RAdecPointer.point(self, v1, v2)
         
 #if __name__ == '__main__':
 #    if len(sys.argv) < 3 or not len(sys.argv) & 1:
