@@ -173,7 +173,7 @@ class Pointer_CLI(object):
            pointer serve
 
           ... and the client:
-          pointer -s http://192.168.0.100:17936 -a 1 -e 2 point
+          pointer -s 192.168.0.100 get
         """
         with server.PointerServer(pointer) as rpcd:
             self.tell("Server started...")
@@ -185,13 +185,13 @@ class Pointer_CLI(object):
     serve.cli_options = ((), ())
 
     def move(self, pointer, coords=None, v1=0, v2=0):
-        """Relative move the given Coords (Azimuth and Elevation [degrees]
+        """Relative move the given Coords (Azimuth and Elevation [degrees],
             or Right Ascension [HHMMSS.sss] and Declination [degrees])
             For example:
             pointer -a 10 -e 5 move
             pointer -a 45 move
             pointer -e 15 move
-            pointer -r 123456.789 -d 01.23 move
+            pointer -r 123456.789 -d 1.23 move
         """
         print 'coords:', coords
         if coords is not None:
@@ -201,10 +201,12 @@ class Pointer_CLI(object):
     move.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
 
     def point(self, pointer, coords=None, v1=None, v2=None):
-        """Absolute move to the given Coords (Azimuth and Elevation [degrees]
+        """Absolute move to the given Coords (Azimuth and Elevation [degrees],
             or Right Ascension [HHMMSS.sss] and Declination [degrees])
+            Defaults: Azimuth: 0º, Elevation: 0º
             For example:
             pointer -e 15 point
+            pointer -r 120000.01 -d 45 point
         """
         print 'coords:', coords
         if coords is not None:
@@ -223,6 +225,7 @@ class Pointer_CLI(object):
 
     def get(self, pointer):
         """Get actual pointer Azimuth and Elevation angles [degrees]
+            and Right Ascension and Declination angles [degrees] 
             For example:
             pointer get
         """
@@ -237,10 +240,12 @@ class Pointer_CLI(object):
     get.cli_options = ((), ('-s'))
             
     def set(self, pointer, coords=None, v1=None, v2=None):
-        """Set pointer position to the given Azimuth and Elevation [degrees]
-            Defaults: 0., 0.
+        """Set pointer position to the given Coords (Azimuth and Elevation [degrees],
+            or Right Ascension [HHMMSS.sss] and Declination [degrees])
+            Defaults: Azimuth 0., Elevation 0.
             For example:
-            pointer -e 0 set
+            pointer -e 10 set
+            pointer -r 120000 -d 90 set
         """
         print 'coords:', coords
         if coords is not None:
@@ -255,32 +260,33 @@ class Pointer_CLI(object):
             pointer getSpeed
         """
         azimuth, elevation = pointer.getSpeed()
-        self.tell("\nAzimuth Speed: %.2f º/s, " \
-                  "Elevation Speed: %.2f º/s" \
+        self.tell("\nAzimuth Speed: %.2fº/s, " \
+                  "Elevation Speed: %.2fº/s" \
                   % (azimuth, elevation))
     getSpeed.cli_options = ((), ('-s'))
 
-    def setSpeed(self, pointer, azimuth=0., elevation=0.):
+    def setSpeed(self, pointer, azimuth=1., elevation=1.):
         """ Set pointer speed to the given Azimuth and Elevation speeds [degrees/s]
+            Defaults: Azimuth: 1º/s, Elevation: 1º/s
             For example:
-            pointer -e 1 setSpeed
+            pointer -e 2 setSpeed
         """
         pointer.setSpeed(azimuth, elevation)
     setSpeed.cli_options = ((), ('-e', '-a', '-s'))
 
     def getLatLon(self, pointer):
-        """ Get actual pointer latitude and longitude [degrees]
+        """ Get actual pointer Latitude and Longitude settings [degrees]
             For example:
             pointer getLatLon
         """
         azimuth, elevation = pointer.getLatLon()
-        self.tell("\nLatitude: %.2f º, " \
-                  "Longitude: %.2f º" \
+        self.tell("\nLatitude: %.4fº, " \
+                  "Longitude: %.4fº" \
                   % (azimuth, elevation))
     getLatLon.cli_options = ((), ('-s'))
 
     def setLatLon(self, pointer, lat=0., lon=0.):
-        """Set pointer to the given latitude and longitude degrees]
+        """Set pointer to the given Latitude and Longitude degrees]
             For example:
             pointer --lat -41 --lon -72 setLatLon
         """
