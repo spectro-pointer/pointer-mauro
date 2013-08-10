@@ -304,9 +304,10 @@ class GpioPointer(object):
         for p in reduce(tuple.__add__, self.PORTS, ()):
             try:
                 if gpioFound:
+                    print 'port:', p
                     GPIO.setup(p, GPIO.OUT)
             except ValueError:
-                print "Invalid port:", p
+                print 'Invalid port:', p
                 sys.exit(1)
                 
 #class Pointer(ParallelPointer):
