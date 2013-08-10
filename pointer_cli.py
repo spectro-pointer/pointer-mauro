@@ -17,7 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with CNC/Pointer.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import with_statement
+
 
 import getopt
 #import glob
@@ -79,7 +79,7 @@ class Pointer_CLI(object):
                 raise PointerRuntimeError("The command '%s' requires the " \
                                         "option '%s'. See 'help'." % \
                                         (command, param))
-        for arg, value in args.iteritems():
+        for arg, value in args.items():
             if arg in req_params or arg in opt_params:
                 if arg == '-a':
                     options['v1'] = value
@@ -193,7 +193,7 @@ class Pointer_CLI(object):
             pointer -e 15 move
             pointer -r 123456.789 -d 1.23 move
         """
-        print 'coords:', coords
+        print('coords:', coords)
         if coords is not None:
             pointer.move(coords, v1, v2)
         else:
@@ -208,7 +208,7 @@ class Pointer_CLI(object):
             pointer -e 15 point
             pointer -r 120000.01 -d 45 point
         """
-        print 'coords:', coords
+        print('coords:', coords)
         if coords is not None:
             pointer.point(coords, v1, v2)
         else:
@@ -247,7 +247,7 @@ class Pointer_CLI(object):
             pointer -e 10 set
             pointer -r 120000 -d 90 set
         """
-        print 'coords:', coords
+        print('coords:', coords)
         if coords is not None:
             pointer.set(coords, v1, v2)
         else:

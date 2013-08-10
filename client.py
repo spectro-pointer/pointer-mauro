@@ -17,9 +17,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Pointer.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import with_statement
 
-import BaseHTTPServer
+
+import http.server
 #import hashlib
 #import os
 #import random
@@ -27,7 +27,7 @@ import re
 #import struct
 #import sys
 #import threading
-import xmlrpclib
+import xmlrpc.client
 #import zlib
 
 #import config
@@ -37,7 +37,7 @@ import xmlrpclib
 # prevent call to socket.getfqdn
 def fast_address_string(self):
     return '%s' % self.client_address[0]
-BaseHTTPServer.BaseHTTPRequestHandler.address_string = fast_address_string
+http.server.BaseHTTPRequestHandler.address_string = fast_address_string
 del fast_address_string
 
 
@@ -55,7 +55,7 @@ def handle_xmlfault(*params):
         def protected_f(*args, **kwds):
             try:
                 ret = f(*args, **kwds)
-            except xmlrpclib.Fault, e:
+            except xmlrpc.client.Fault as e:
                 # rpc does not know Exceptions so they always come as pure
                 # strings. One way would be to hack into the de-marshalling.
                 # These seems easier and less intrusive.
@@ -73,7 +73,7 @@ def handle_xmlfault(*params):
                     else:
                         raise
             return ret
-        protected_f.func_name = f.func_name
+        protected_f.__name__ = f.__name__
         protected_f.__doc__ = f.__doc__
         return protected_f
     return check_xmlfault
@@ -99,7 +99,7 @@ class DigestError(PointerError):
 class RPCPointer(object):
 
     def __init__(self, url):
-        self.cli = xmlrpclib.ServerProxy(url)
+        self.cli = xmlrpc.client.ServerProxy(url)
 
     @handle_xmlfault()
     def move(self, coords, v1, v2):
@@ -111,7 +111,7 @@ class RPCPointer(object):
         """Points."""
         return self.cli.point(coords, v1, v2)
        
-    @handle_xmlfault()
+#    @handle_xmlfault()
     def get(self, coords):
         """Gets actual Azimuth and Elevation angles."""
         c1, c2 = self.cli.get(coords)

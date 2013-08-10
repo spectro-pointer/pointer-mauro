@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 #
 
-from __future__ import with_statement
 
-import BaseHTTPServer
+
+import http.server
 #import hashlib
 #import os
 #import random
@@ -22,7 +22,7 @@ import util
 # prevent call to socket.getfqdn
 def fast_address_string(self):
     return '%s' % self.client_address[0]
-BaseHTTPServer.BaseHTTPRequestHandler.address_string = fast_address_string
+http.server.BaseHTTPRequestHandler.address_string = fast_address_string
 del fast_address_string
 
 def getServer(url):
@@ -40,7 +40,7 @@ class ServerError(IOError):
 
 class PointerServer(util.AsyncXMLRPCServer):
     def __init__(self, pointer, iface='', port=17936):
-        util.AsyncXMLRPCServer.__init__(self, (iface, port))
+        util.AsyncXMLRPCServer.__init__(self, iface, port)
         self.methods['move'] = self.move
         self.methods['point'] = self.point
         self.methods['get'] = self.get

@@ -10,6 +10,7 @@ from util import Thread
 from threading import Condition
 
 from collections import defaultdict
+from functools import reduce
 
 STEP_ONE	= 0x01
 DIR_CW		= 0x00
@@ -74,7 +75,7 @@ class ParallelPointer(EightBitIO):
         functions = {}
         dir = defaultdict(int)
         changeDir = [False, False, False, False]
-        for axis, step in axes.items():
+        for axis, step in list(axes.items()):
             if (AXIS_X <= axis <= AXIS_A):
                 dir[axis] = DIR_CW
                 if step < 0: 
@@ -99,7 +100,7 @@ class ParallelPointer(EightBitIO):
                     # Save step function
                     functions[axis] = self.CTRL_FUN[pins[0]]
             else:
-                print "ERROR: axis %d steps %d dir %d" %(axis, steps, dir[axis])
+                print("ERROR: axis %d steps %d dir %d" %(axis, steps, dir[axis]))
         
         # Now process
         changeDirSteps = [0, 0, 0, 0]
@@ -129,24 +130,24 @@ class ParallelPointer(EightBitIO):
             # Turn off Data axis (Z and A)
             self.out(0)
             # Turn off Control axis (X and Y)
-            for stepFunction in functions.values():
+            for stepFunction in list(functions.values()):
                 stepFunction(0)
             # Absolute steps tracking
-            print 'pos/steps:',
+            print('pos/steps:', end=' ')
             for axis in AXIS_X, AXIS_Y, AXIS_Z, AXIS_A:
-                print dir[axis], self.pos[axis], '/',
+                print(dir[axis], self.pos[axis], '/', end=' ')
                 if steps[axis] > 0.:
                     steps[axis] -= 1
                     if changeDir[axis]:
                         if changeDirSteps[axis] < self.dirChangeSteps[axis][dir[axis]]:
-                            print 'changeDir:', changeDirSteps[axis],
+                            print('changeDir:', changeDirSteps[axis], end=' ')
                             changeDirSteps[axis] += 1
                         else:
                             self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
                     else:
                         self.pos[axis] -= (dir[axis] - 1 * (dir[axis] == 0))
-                print steps[axis], ',',
-            print
+                print(steps[axis], ',', end=' ')
+            print()
             time.sleep(sleep_OFF) # wait (max) off
 
 class Axis(Thread):
@@ -154,7 +155,8 @@ class Axis(Thread):
     
         Independent processing for each axis
     """
-    def __init__(self, (step, dir)):
+    def __init__(self, xxx_todo_changeme):
+        (step, dir) = xxx_todo_changeme
         Thread.__init__(self)
         
         self.PORTS = (step, dir)
@@ -183,12 +185,12 @@ class Axis(Thread):
                         break
                 request = self.requests.pop(0)
             # process
-            print "Request received in thread %s: req: %d" % (self.name, request)
+            print("Request received in thread %s: req: %d" % (self.name, request))
             self.move(request)      
 
     def put_request(self, request):
         # write request to mqueue
-        print 'Request to thread %s: steps: %d' % (self.name, request)
+        print('Request to thread %s: steps: %d' % (self.name, request))
         with self.cv:
             self.requests.append(request)
             self.cv.notifyAll()
@@ -269,18 +271,18 @@ class Axis(Thread):
                 GPIO.output(port[0], False)
             
             # Absolute steps tracking
-            print 'pos/steps:',
-            print dir, self.pos, '/',
+            print('pos/steps:', end=' ')
+            print(dir, self.pos, '/', end=' ')
             if changeDir:
                 if changeDirSteps < self.dirChangeSteps[dir]:
-                    print 'changeDir:', changeDirSteps,
+                    print('changeDir:', changeDirSteps, end=' ')
                     changeDirSteps += 1
                 else:
                     self.pos -= (dir - 1 * (dir == 0))
             else:
                 self.pos -= (dir - 1 * (dir == 0))
-            print steps, ',',
-            print
+            print(steps, ',', end=' ')
+            print()
             time.sleep(sleepOff) # wait off
             step += 1;
 
@@ -289,7 +291,7 @@ try:
     gpioFound = True
 except ImportError:
     gpioFound = False
-    print "Warning: Raspberry Pi GPIO module not found."
+    print("Warning: Raspberry Pi GPIO module not found.")
     pass
     
 class GpioPointer(object):
@@ -304,10 +306,9 @@ class GpioPointer(object):
         for p in reduce(tuple.__add__, self.PORTS, ()):
             try:
                 if gpioFound:
-                    print 'port:', p
                     GPIO.setup(p, GPIO.OUT)
             except ValueError:
-                print 'Invalid port:', p
+                print("Invalid port:", p)
                 sys.exit(1)
                 
 #class Pointer(ParallelPointer):
@@ -344,7 +345,7 @@ class Pointer(GpioPointer):
             Format is (CW, CCW)
             Units are steps
         """
-        for axis, steps in axesNames.items():
+        for axis, steps in list(axesNames.items()):
             ax = self.axes[axis]
             self.Axes[ax].set_dirChangeSteps(steps)
         
@@ -354,7 +355,7 @@ class Pointer(GpioPointer):
            Simultaneously move each axis from 'axes', their given number of steps
            A negative step is CCW
         """
-        for axis, step in axes.items():
+        for axis, step in list(axes.items()):
             self.Axes[axis].put_request(step)
 
 class AnglesPointer(Pointer):
@@ -371,7 +372,7 @@ class AnglesPointer(Pointer):
            Angles are in degrees
            A negative angle means CCW
         """
-        for axis in axesNames.keys():
+        for axis in list(axesNames.keys()):
             ax = self.axes[axis]
             pos = self.Axes[ax].get_pos()
             angles = pos * self.stepAngle[ax]
@@ -383,7 +384,7 @@ class AnglesPointer(Pointer):
            Angles are in degrees
            A negative angle means CCW
         """
-        for axis, angle in axesNames.items():
+        for axis, angle in list(axesNames.items()):
             axis = self.axes[axis]
             steps = float(angle) / self.stepAngle[axis]
             self.Axes[axis].set_pos(steps)
@@ -394,8 +395,8 @@ class AnglesPointer(Pointer):
            A negative angle means CCW
         """
         ax = dict()
-        for axis, angle in axesNames.items():
-            print axis, angle
+        for axis, angle in list(axesNames.items()):
+            print(axis, angle)
             steps = angle / self.stepAngle[self.axes[axis]]
             ax[self.axes[axis]] = int(round(steps))
         Pointer.move(self, ax)
@@ -406,24 +407,24 @@ class AnglesPointer(Pointer):
            A negative angle means CCW
         """
         ax = dict()
-        for axis, angle in axesNames.items():
+        for axis, angle in list(axesNames.items()):
             axis = self.axes[axis]
             steps = angle / self.stepAngle[axis]
             pos = self.Axes[axis].get_pos()
-            print axis, angle, pos, steps,  
+            print(axis, angle, pos, steps, end=' ')  
             ax[axis] = round(steps-pos)
             if ax[axis] > self.steps[axis]/2:
                 ax[axis] -= self.steps[axis]
             if ax[axis] < -self.steps[axis]/2:
                 ax[axis] += self.steps[axis]
-            print 'delta:', ax[axis]
+            print('delta:', ax[axis])
         Pointer.move(self, ax)
 
     def getSpeed(self, axesNames):
         """Get the speed for each axis from 'axesNames'
            Speeds are in degrees/s
         """
-        for axis in axesNames.keys():
+        for axis in list(axesNames.keys()):
             ax = self.axes[axis]
             delay = self.Axes[ax].get_sleep()
             speed = 1./(delay[0]+delay[1]) * self.stepAngle[ax]
@@ -434,7 +435,7 @@ class AnglesPointer(Pointer):
         """ High level speed setting for each axis
             Speed Units are degrees/second
         """
-        for axis, speed in axesNames.items():
+        for axis, speed in list(axesNames.items()):
             ax = self.axes[axis]
             # convert to steps/s
             steps = float(speed) / self.stepAngle[ax]
@@ -575,20 +576,20 @@ class RAdecPointer(AzElPointer):
         hour   = float(ra[0:2])
         minute = float(ra[2:4])
         second = float(ra[4:])
-        print 'hour:', hour
-        print 'minute:', minute
-        print 'second:', second
+        print('hour:', hour)
+        print('minute:', minute)
+        print('second:', second)
         return hour+minute/60.+second/3600.
     
     def _RAdec2AzEl(self, ra, dec):
         # Convert RA string to hours
-        print 'RA:', ra, 'dec:', dec
+        print('RA:', ra, 'dec:', dec)
         hours = self._parseRA(str(ra))
-        print 'hours:', hours
+        print('hours:', hours)
         
         # Convert hours to radians
         ra = sidereal.hoursToRadians(hours)
-        print 'RA(radians):', ra
+        print('RA(radians):', ra)
         # Convert to azimuth and elevation
         RADec = sidereal.RADec(ra, radians(float(dec)))
         ut = datetime.datetime.utcnow()
@@ -596,7 +597,7 @@ class RAdecPointer(AzElPointer):
         AltAz = RADec.altAz(h, radians(self.lat))
         az = degrees(AltAz.az);
         el = degrees(AltAz.alt)
-        print 'Azimuth:', az, 'Elevation:', el
+        print('Azimuth:', az, 'Elevation:', el)
         return az, el
 
     def getLatLon(self):
@@ -656,7 +657,7 @@ class GenericPointer(RAdecPointer):
             return RAdecPointer.get(self)
 
     def set(self, coords, v1, v2):
-        print 'coords:', coords
+        print('coords:', coords)
         if coords == 'AzEl':
             AzElPointer.set(self, v1, v2)
         elif coords == 'Az':
@@ -667,14 +668,14 @@ class GenericPointer(RAdecPointer):
             RAdecPointer.set(self, v1, v2)
 
     def move(self, coords, v1, v2):
-        print 'coords:', coords
+        print('coords:', coords)
         if coords == 'AzEl':
             AzElPointer.move(self, v1, v2)
         elif coords == 'RAdec':
             RAdecPointer.move(self, v1, v2)
 
     def point(self, coords, v1, v2):
-        print 'coords:', coords
+        print('coords:', coords)
         if v1 is None:
             v1 = 0.
         if v2 is None:

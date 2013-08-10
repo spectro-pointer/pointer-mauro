@@ -13,7 +13,7 @@
 
 """
 
-from __future__ import with_statement
+
 
 #import cStringIO
 #import gzip
@@ -21,7 +21,7 @@ from __future__ import with_statement
 #import Queue
 #import random
 import socket
-import SimpleXMLRPCServer
+import xmlrpc.server
 #import sys
 #import struct
 import time
@@ -51,7 +51,7 @@ class Thread(threading.Thread):
         self.join()
 
 
-class AsyncXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer, Thread):
+class AsyncXMLRPCServer(xmlrpc.server.SimpleXMLRPCServer, Thread):
     """A stoppable XMLRPCServer
 
        The main socket is made non-blocking so we can check on
@@ -60,8 +60,8 @@ class AsyncXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer, Thread):
        Sub-classes should add (name:function)-entries to self.methods
     """
 
-    def __init__(self, (iface, port)=('', 17934)):
-        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, (iface, port), \
+    def __init__(self, iface='', port=17934):
+        xmlrpc.server.SimpleXMLRPCServer.__init__(self, (iface, port), \
                                                         logRequests=False)
         Thread.__init__(self)
         self.setDaemon(True)
