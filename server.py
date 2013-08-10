@@ -43,45 +43,45 @@ class PointerServer(util.AsyncXMLRPCServer):
         util.AsyncXMLRPCServer.__init__(self, (iface, port))
         self.methods['move'] = self.move
         self.methods['point'] = self.point
-        self.methods['pointAz'] = self.pointAz
-        self.methods['pointEl'] = self.pointEl
         self.methods['get'] = self.get
         self.methods['set'] = self.set
-        self.methods['setAz'] = self.setAz
-        self.methods['setEl'] = self.setEl
         self.methods['getSpeed'] = self.getSpeed
         self.methods['setSpeed'] = self.setSpeed
+        self.methods['getLatLon'] = self.getLatLon
+        self.methods['setLatLon'] = self.setLatLon
         self.methods['abort'] = self.abort
         self.pointer = pointer
         self.start()
-    def move(self, azimuth, elevation):
-        self.pointer.move(azimuth, elevation)
-        return True
-    def pointAz(self, azimuth):
-        self.pointer.pointAz(azimuth)
-        return True
-    def pointEl(self, elevation):
-        self.pointer.pointEl(elevation)
-        return True
-    def point(self, azimuth, elevation):
-        self.pointer.point(azimuth, elevation)
-        return True
-    def get(self):
-        return self.pointer.get()
-    def setAz(self, azimuth):
-        self.pointer.setAz(azimuth)
-        return True
-    def setEl(self, elevation):
-        self.pointer.setEl(elevation)
-        return True
-    def set(self, azimuth, elevation):
-        self.pointer.set(azimuth, elevation)
-        return True
+
     def getSpeed(self):
         return self.pointer.getSpeed()
+
     def setSpeed(self, azimuth, elevation):
         self.pointer.setSpeed(azimuth, elevation)
         return True
+
     def abort(self):
         self.pointer.abort()
+        return True
+
+    def get(self, coords):
+        return self.pointer.get(coords)
+    
+    def getLatLon(self):
+        return self.pointer.getLatLon()
+
+    def setLatLon(self, lat, lon):
+        self.pointer.setLatLon(lat, lon)
+        return True
+    
+    def set(self, coords, v1, v2):
+        self.pointer.set(coords, v1, v2)
+        return True
+    
+    def move(self, coords, v1, v2):
+        self.pointer.move(coords, v1, v2)
+        return True
+    
+    def point(self, coords, v1, v2):
+        self.pointer.point(coords, v1, v2)
         return True
