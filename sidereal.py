@@ -1384,8 +1384,11 @@ def coordRotate ( x, y, z ):
     xt  =  asin ( sin(x) * sin(y) +
                   cos(x) * cos(y) * cos(z) )
     #-- 2 --
-    yt  =  acos ( ( sin(x) - sin(y) * sin(xt) ) /
-                  ( cos(y) * cos(xt) ) )
+    if cos(y) * cos(xt) < 1.e-16:
+        yt = acos(1.)
+    else:
+        yt  =  acos ( ( sin(x) - sin(y) * sin(xt) ) /
+                      ( cos(y) * cos(xt) ) )
     #-- 3 --
     if  sin(z) > 0.0:
         yt  =  TWO_PI - yt
