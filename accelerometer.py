@@ -3,7 +3,7 @@
  
 class Accelerometer(object):
     """ Accelerometer Driver
-        ADXL345 Accelerometer
+        ADXL345 Accelerometer Class driver
     """
     
     def __init__(self):
