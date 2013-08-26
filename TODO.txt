@@ -24,14 +24,16 @@
 		Pi supported webcam driver
 
 	accelerometer
-		python3->2 interface
-	
+		better angle estimations
+			
 - pointer server:
 	- Accelerometer based elevation angle setting
+		integrate accel elevation reading into pointing
 	- GPS based latitude and longitude settings
 	
 	duty cycle?
     dir change auto adjust
+    	based on accel elevation
     	based on webcam image movement?
     usb webcam
     	compass
