@@ -30,6 +30,8 @@
 	- Accelerometer based elevation angle setting
 		integrate accel elevation reading into pointing
 	- GPS based latitude and longitude settings
+        gspd python client
+        use lat,lon,height and date from gps
 	
 	duty cycle?
     dir change auto adjust
