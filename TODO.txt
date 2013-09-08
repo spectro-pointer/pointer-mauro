@@ -17,8 +17,6 @@
 		webcam based
 	
 - Raspberry Pi
-	serial driver
-		GPS reading
 	webcam
 		Logitech driver
 		Pi supported webcam driver
@@ -27,6 +25,7 @@
 		better angle estimations
 			
 - pointer server:
+    - gps(gpsd) class
 	- Accelerometer based elevation angle setting
 		integrate accel elevation reading into pointing
 	- GPS based latitude and longitude settings
@@ -67,6 +66,7 @@ Functions:
 				setting/getting
 				GPS based
 		Earth rotation compensation
+            gps time
 			ntp time
 		
 		stellarium telescope interface	

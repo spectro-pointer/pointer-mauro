@@ -44,6 +44,8 @@ class AnglesSensor(Accelerometer):
 #        if axes[2] > 0.:
         if axes[2]-axes[1] > 0.:
             axes[0] = 360. -axes[0]
+        axes[1] = math.degrees(math.acos(axes[1]))
+        axes[2] = math.degrees(math.acos(axes[2]))
         return list(axes)
     
 from time import sleep
