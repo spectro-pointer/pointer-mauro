@@ -125,21 +125,6 @@ class gpsjson(gpscommon):
         return self
 
     def json_unpack(self, buf):
-        def asciify(d):
-            "De-Unicodify everything so we can copy dicts into Python objects."
-            t = {}
-            for (k, v) in list(d.items()):
-                ka = k.encode("ascii")
-                if type(v) == type("x"):
-                    va = v.encode("ascii")
-                elif type(v) == type({}):
-                    va = asciify(v)
-                elif type(v) == type([]):
-                    va = list(map(asciify, v))
-                else:
-                    va = v
-                t[ka] = va
-            return t
         self.data = dictwrapper(**json.loads(buf.strip(), encoding="ascii"))
         # Should be done for any other array-valued subobjects, too.
         if self.data["class"] == "SKY" and hasattr(self.data, "satellites"):
