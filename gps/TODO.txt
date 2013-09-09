@@ -3,9 +3,6 @@
     	raise socket.error(msg)
 		UnboundLocalError: local variable 'msg' referenced before assignment
 
-- Remove unused/obsolete methods
-	asciify()
-	
 - Fix stop/interrupt when no gps data (use a non-blocking socket call)
 
 - Release python3-gps package
