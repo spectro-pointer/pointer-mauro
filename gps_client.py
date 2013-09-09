@@ -35,7 +35,7 @@ if __name__ == '__main__':
                 print("%s: %s" % (k, gpsData[k]))
             print()
             print(gpsData['lat'], gpsData['lon'])
-        except KeyError:
+        except (KeyError, AttributeError):
             pass
         except (KeyboardInterrupt, SystemExit):
             g.shutdown()
