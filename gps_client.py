@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
-from util import Thread
 import time
-from gps import *
+import sys
 
+from util import Thread
+from gps import *
 
 class GpsPoller(Thread):
 
@@ -24,7 +25,12 @@ class GpsPoller(Thread):
             pass
 
 if __name__ == '__main__':
-    g = GpsPoller(server='pi')
+    
+    if len(sys.argv) != 2:
+        print("Usage: %s <host>" % sys.argv[0])
+        sys.exit(1)
+    
+    g = GpsPoller(server=sys.argv[1])
     g.start()
     while True:
         try:
