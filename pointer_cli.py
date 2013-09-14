@@ -203,7 +203,7 @@ class Pointer_CLI(object):
     def point(self, pointer, coords=None, v1=None, v2=None):
         """Absolute move to the given Coords (Azimuth and Elevation [degrees],
             or Right Ascension [HHMMSS.sss] and Declination [degrees])
-            Defaults: Azimuth: 0º, Elevation: 0º
+            Defaults: Azimuth: 0°, Elevation: 0°
             For example:
             pointer -e 15 point
             pointer -r 120000.01 -d 45 point
@@ -260,14 +260,14 @@ class Pointer_CLI(object):
             pointer getSpeed
         """
         azimuth, elevation = pointer.getSpeed()
-        self.tell("\nAzimuth Speed: %.2fº/s, " \
-                  "Elevation Speed: %.2fº/s" \
+        self.tell("\nAzimuth Speed: %.2f°/s, " \
+                  "Elevation Speed: %.2f°/s" \
                   % (azimuth, elevation))
     getSpeed.cli_options = ((), ('-s'))
 
     def setSpeed(self, pointer, azimuth=1., elevation=1.):
         """ Set pointer speed to the given Azimuth and Elevation speeds [degrees/s]
-            Defaults: Azimuth: 1º/s, Elevation: 1º/s
+            Defaults: Azimuth: 1°/s, Elevation: 1°/s
             For example:
             pointer -e 2 setSpeed
         """
@@ -280,8 +280,8 @@ class Pointer_CLI(object):
             pointer getLatLon
         """
         azimuth, elevation = pointer.getLatLon()
-        self.tell("\nLatitude: %.4fº, " \
-                  "Longitude: %.4fº" \
+        self.tell("\nLatitude: %.4f°, " \
+                  "Longitude: %.4f°" \
                   % (azimuth, elevation))
     getLatLon.cli_options = ((), ('-s'))
 

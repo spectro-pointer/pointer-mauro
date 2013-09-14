@@ -27,9 +27,15 @@
 - pointer server:
 	- Accelerometer based elevation angle setting
 		integrate accel elevation reading into pointing
-	- GPS based latitude and longitude settings
-        gspd python client
-        use lat, lon, height, and date from gps
+	- GPS
+        Use time, height, speed and heading from GPS
+        Independent GPS data module
+        	time
+        	lat
+        	lon
+        	height
+        	speed
+        	heading
 	
 	duty cycle?
     dir change auto adjust
@@ -63,19 +69,21 @@ Functions:
 		RA/Dec
 			lat/lon
 				setting/getting
-				GPS based
-		Earth rotation compensation
             gps time
 			ntp time
+		Earth rotation compensation
 		
-		stellarium telescope interface	
+		Stellarium telescope interface	
 		
 	- Target tracking
 		moving target detection
 			webcam based
+			picam based
+			
 		brightness/color tracking
 			max brightness tracking
 			specific color(green laser?) tracking
+	
 	- Window sweeping
 		custom window
 		custom speeds

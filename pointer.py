@@ -557,7 +557,7 @@ import sidereal
 import time
 import datetime
 from math import radians, degrees
-#from rdaa import
+from gps_cli import GpsPoller
  
 class RAdecPointer(AzElPointer):
     """Right Ascension/Declination Pointer class"""
@@ -567,8 +567,27 @@ class RAdecPointer(AzElPointer):
         """ Observer's latitude and longitude, in degrees
             Longitude is positive eastward
         """
+        # Default values
         self.lat = -41.14
         self.lon = -71.32
+        self.gpsData = {}
+#        self.gps = None # no gps
+        self.gps = GpsPoller(server='pi') # FIXME: config parameter for server
+        if (self.gps):
+            self.gps.start()
+            time.sleep(.5)
+            self._gpsUpdate() 
+
+    def _gpsUpdate(self):
+        """ Tries to update our latitude and longitude information from gps
+        """
+        try:
+            if self.gps:
+                self.gpsData = self.gps.get()
+                self.lat = self.gpsData['lat']
+                self.lon = self.gpsData['lon']
+        except (TypeError, KeyError, AttributeError):
+            pass
 
     def _parseRA(self, ra):
         """Parse a Right Ascension and return the equivalent hours
@@ -595,6 +614,7 @@ class RAdecPointer(AzElPointer):
         RADec = sidereal.RADec(ra, radians(float(dec)))
         ut = datetime.datetime.utcnow()
         h = sidereal.raToHourAngle(ra, ut, radians(self.lon))
+        self._gpsUpdate()
         AltAz = RADec.altAz(h, radians(self.lat))
         az = degrees(AltAz.az);
         el = degrees(AltAz.alt)
@@ -602,9 +622,11 @@ class RAdecPointer(AzElPointer):
         return az, el
 
     def getLatLon(self):
+        self._gpsUpdate()
         return self.lat, self.lon
 
     def setLatLon(self, lat, lon):
+        self.gps = None # Disable gps updating
         self.lat = lat
         self.lon = lon
         
@@ -618,6 +640,7 @@ class RAdecPointer(AzElPointer):
         
         dt = datetime.datetime.utcnow()
         lst = sidereal.SiderealTime.fromDatetime(dt).lst(radians(self.lon))
+        self._gpsUpdate()
         latLon = sidereal.LatLon(radians(self.lat), radians(self.lon))
         RAdec = AltAz.raDec(lst, latLon)
         return degrees(RAdec.ra), degrees(RAdec.dec)
