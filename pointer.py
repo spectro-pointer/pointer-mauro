@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-# Generic Parallel Port Pointer Driver
+# Parallel Port/GPIO Generic Pointer Driver
 #
 #(C) 2013 Mauro Lacy <mauro@lacy.com.ar>
 # this is distributed under a free software license, see license.txt
