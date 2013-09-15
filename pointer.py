@@ -359,6 +359,8 @@ class Pointer(GpioPointer):
         for axis, step in list(axes.items()):
             self.Axes[axis].put_request(step)
 
+#from accelerometer import AnglesSensor
+
 class AnglesPointer(Pointer):
     """Angles Pointer class"""
     def __init__(self):
@@ -366,6 +368,7 @@ class AnglesPointer(Pointer):
         self.steps = [2980, 0, 1360, 0]
         self.stepAngle = [360./self.steps[0], 0., 360./self.steps[2], 0.]
         
+#        self.angles = AnglesSensor()
         super(AnglesPointer, self).__init__()
         
     def get(self, axesNames):
