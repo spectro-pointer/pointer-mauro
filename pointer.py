@@ -843,8 +843,8 @@ class TelescopePointer(socketserver.BaseRequestHandler):
         
         # Build reply
         reply = struct.pack("<HHqIii", self.clientReplyLength, self.defaultType, self.defaultUnusedTime, ra, dec, self.defaultReplyStatus)
-        if (len(reply) != self.clientReplyLength)
-            print('Wrong length of reply:', len(reply)
+        if len(reply) != self.clientReplyLength:
+            print('Wrong length of reply:', len(reply))
             self.request.close()
             return
 #        print('reply:', sep=' ')
