@@ -722,7 +722,7 @@ class GenericPointer(RAdecPointer):
 import socketserver
 import struct
 
-class TelescopePointer(socketserver.BaseRequestHandler):
+class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
     """Telescope Server Pointer class"""
     def __init__(self, request, client_addr, server):
         self.maxRequestLength= 1024
@@ -730,8 +730,8 @@ class TelescopePointer(socketserver.BaseRequestHandler):
         self.defaultType = 0
         
         # Pointer instance, finally
-        self.pointer = RAdecPointer()
-        
+#        self.pointer = RAdecPointer()
+        RAdecPointer.__init__(self)
         super(TelescopePointer, self).__init__(request, client_addr, server)
 
     "One instance per connection."
@@ -767,7 +767,8 @@ class TelescopePointer(socketserver.BaseRequestHandler):
         print('RA    :', ra)
         print('Dec   :', dec)
         # Now process
-        self.pointer.set2(ra, dec)
+#        self.pointer.set2(ra, dec)
+        self.set2(ra, dec)
         # Reply?
 #        reply = ...
 #        if reply is not None:
