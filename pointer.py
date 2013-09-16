@@ -155,8 +155,7 @@ class Axis(Thread):
     
         Independent processing for each axis
     """
-    def __init__(self, xxx_todo_changeme):
-        (step, dir) = xxx_todo_changeme
+    def __init__(self, step, dir):
         Thread.__init__(self)
         
         self.PORTS = (step, dir)
@@ -324,7 +323,7 @@ class Pointer(GpioPointer):
         self.sleep_OFF = (.005, .0075, .020, .0025)
         
         # Dir change adjustment (CW, CCW) for X(El), Y , Z(Az), A
-        self.dirChangeSteps = [(40, 40), (0, 0), (18, 18), (0, 0)]
+        self.dirChangeSteps = [(1, 1), (0, 0), (1, 1), (0, 0)]
         self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
         
         super(Pointer, self).__init__()
