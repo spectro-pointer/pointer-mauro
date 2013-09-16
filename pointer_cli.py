@@ -32,7 +32,7 @@ import sys
 import pointer
 #import config
 
-# XML-RPC server and Simple TCP server
+# XML-RPC server and Telescope Server
 import util
 # xml-rpc
 import client
@@ -125,7 +125,7 @@ class Pointer_CLI(object):
             options['pointer'] = self._getPointer(server_host)
         else: # local pointer
             if command == 'telescope':
-                options['ptr'] = pointer.RAdecPointer() # To avoid pointer name-space collision
+                options['pointer'] = pointer.RAdecPointer()
             else:
                 options['pointer'] = pointer.GenericPointer()
         func(self, **options)
@@ -189,7 +189,7 @@ class Pointer_CLI(object):
         self.tell("Server closed")
     serve.cli_options = ((), ())
     
-    def telescope(self, ptr):
+    def telescope(self, pointer):
         """Serve local telescope hardware to a telescope client (i.e. stellarium)
 
            Start a server that provides access to the local telescope
@@ -201,8 +201,7 @@ class Pointer_CLI(object):
            ... and in Stellarium, configure the server's IP in an 'External software
            or remote computer' telescope control
         """
-#        server = util.SimpleTCPServer(('', 10001), util.SingleTCPHandler)
-        server = util.SimpleTCPServer(('', 10001), pointer.TelescopePointer, ptr)
+        server = util.TelescopeServer(('', 10001), util.TelescopeRequestHandler, pointer)
         self.tell("Telescope server started...")
         try:
             server.serve_forever()
