@@ -727,7 +727,10 @@ class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
     def __init__(self, request, client_addr, server):
         self.maxRequestLength= 1024
         self.clientRequestLength = 20
+        self.clientReplyLength = 24
+        self.defaultReplyStatus = 0
         self.defaultType = 0
+        self.defaultUnusedTime = 0 # FIXME: set time field
         
         # Pointer instance, finally
 #        self.pointer = RAdecPointer()
@@ -737,6 +740,21 @@ class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
     "One instance per connection."
     def handle(self):
         # self.request is the client connection
+        """ Request:
+            client->server:
+            MessageGoto (type = 0)
+            LENGTH (2 bytes,integer): length of the message
+            TYPE   (2 bytes,integer): 0
+            TIME   (8 bytes,integer): current time on the client computer in microseconds
+                              since 1970.01.01 UT. Currently unused.
+            RA     (4 bytes,unsigned integer): right ascension of the telescope (J2000)
+                       a value of 0x100000000 = 0x0 means 24h=0h,
+                       a value of 0x80000000 means 12h
+            DEC    (4 bytes,signed integer): declination of the telescope (J2000)
+                       a value of -0x40000000 means -90degrees,
+                       a value of 0x0 means 0degrees,
+                       a value of 0x40000000 means 90degrees
+        """
         try:
             length = struct.unpack("H", self.request.recv(2))[0]
         except struct.error:
@@ -760,19 +778,50 @@ class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
             return
         # Go ahead
         data = self.request.recv(length-4)
-        time, ra, dec = struct.unpack("qIi", data)
+        t, ra, dec = struct.unpack("qIi", data)
         ra  = float(ra) / 0x80000000 * 12.
         dec = float(dec) /  0x40000000 * 90.
-        print('time  :', time)
+        print('time  :', t)
         print('RA    :', ra)
         print('Dec   :', dec)
         # Now process
 #        self.pointer.set2(ra, dec)
         self.set2(ra, dec)
-        # Reply?
-#        reply = ...
-#        if reply is not None:
-#            self.request.send(reply)
+
+        """ Reply
+            server->client:
+            MessageCurrentPosition (type = 0):
+            
+            LENGTH (2 bytes,integer): length of the message
+            TYPE   (2 bytes,integer): 0
+            TIME   (8 bytes,integer): current time on the server computer in microseconds
+                       since 1970.01.01 UT. Currently unused.
+            RA     (4 bytes,unsigned integer): right ascension of the telescope (J2000)
+                       a value of 0x100000000 = 0x0 means 24h=0h,
+                       a value of 0x80000000 means 12h
+            DEC    (4 bytes,signed integer): declination of the telescope (J2000)
+                       a value of -0x40000000 means -90degrees,
+                       a value of 0x0 means 0degrees,
+                       a value of 0x40000000 means 90degrees
+            STATUS (4 bytes,signed integer): status of the telescope, currently unused.
+                       status=0 means ok, status<0 means some error
+        """
+        ra, dec = self.get() # Get RA and dec values [degrees]
+
+        # Convert RA to hours
+        ra = ra / 360. * 24.
+        
+        print('Current RA [hs] :', ra)
+        print('Current Dec[deg]:', dec)
+        
+        # Format
+        ra = int(ra / 12. * 0x80000000)
+        dec = int(dec / 90. * 0x40000000)
+        
+        # Build reply
+        reply = struct.pack("HHqIii", self.clientReplyLength, self.defaultType, self.defaultUnusedTime, ra, dec, self.defaultReplyStatus)
+        assert(len(reply) == self.clientReplyLength)
+        self.request.send(reply)
         self.request.close()
 
 #if __name__ == '__main__':
