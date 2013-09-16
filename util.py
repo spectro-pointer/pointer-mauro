@@ -110,12 +110,9 @@ class TelescopeRequestHandler(socketserver.BaseRequestHandler):
     def __init__(self, request, client_addr, server):
         self.maxRequestLength= 1024
         self.clientRequestLength = 20
-        self.clientReplyLength = 24
-        self.defaultReplyStatus = 0
         self.defaultType = 0
-        self.defaultUnusedTime = 0 # FIXME: set time field
 
-        self.pointer = server.pointerInstance # A little trick
+        self.pointer = server.pointer # A little trick
         
         super(TelescopeRequestHandler, self).__init__(request, client_addr, server)
 
@@ -170,18 +167,33 @@ class TelescopeRequestHandler(socketserver.BaseRequestHandler):
         self.pointer.point2(ra, dec)
         self.request.close()
 
-class TelescopeServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class TelescopeServer(socketserver.ThreadingMixIn, socketserver.TCPServer, Thread):
     daemon_threads = True
     # much faster rebinding
     allow_reuse_address = True
 
     def __init__(self, server_address, RequestHandlerClass, requestHandlerArg):
         socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass)
-        self.pointerInstance = requestHandlerArg # our pointer instance
+        self.pointer = requestHandlerArg # our pointer instance
+        
+        self.clientReplyLength = 24
+        self.defaultType = 0
+        self.defaultReplyStatus = 0     
+        self.defaultUnusedTime = 0 # FIXME: set time field
         
         # Start another thread, to periodically send our current position
+        Thread.__init__(self)
+        self.setDaemon(True)
+        # Make the main socket non-blocking (for accept())
+#        self.socket.settimeout(1)
+        self.start()
+
+    def run(self):
+        while not self.shallStop:
+            self.sendCurrentPosition()
+            time.sleep(1)
         
-    def sendPosition(self):
+    def sendCurrentPosition(self):
         """ Reply
             server->client:
             MessageCurrentPosition (type = 0):
@@ -221,4 +233,8 @@ class TelescopeServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 #        for b in reply:
 #            print(hex(b), sep=' ')
 #        print()
-        self.socket.send(reply)
+        try:
+            self.socket.send(reply)
+        except socket.error:
+            print('Client not connected?')
+            pass
