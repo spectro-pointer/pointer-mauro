@@ -578,7 +578,7 @@ class RAdecPointer(AzElPointer):
         self.gps = GpsPoller(server='pi') # FIXME: config parameter for server
         if (self.gps):
             self.gps.start()
-            time.sleep(.5)
+            time.sleep(.05)
             self._gpsUpdate() 
 
     def _gpsUpdate(self):
