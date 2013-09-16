@@ -626,8 +626,17 @@ class RAdecPointer(AzElPointer):
         self.gps = None # Disable gps updating
         self.lat = lat
         self.lon = lon
+
+    def get2(self):
+        """ Get actual RA and Dec values
+            RA format is 'HHMMSS.sss'
+            Dec in degrees
+        """ 
+        ra, dec = self.get2()
+        # FIXME: implement RA conversion
+        return ra, dec
         
-    def get(self):
+    def get2(self):
         """ Get actual RA and Dec values
         """
         Az, Alt = AzElPointer.get(self)
@@ -664,13 +673,29 @@ class RAdecPointer(AzElPointer):
            Right Ascension format is "HHMMSS.sss"
            Declination Angle is in degrees
         """
-        az, el = self._RAdec2AzEl(ra, dec)
+        hours = self._parseRA(str(ra))
+        self.move2(hours, dec)
+        
+    def move2(self, ra, dec):
+        """Simultaneously move in Right Ascension and declination
+           Right Ascension in degrees
+           Declination Angle in degrees
+        """
+        az, el = self._RAdec2AzEl(hours, dec)
         AzElPointer.move(self, az, el)
               
     def point(self, ra, dec):
         """Simultaneously point in Right Ascension and declination
            Right Ascension format is "HHMMSS.sss"
            Declination Angle is in degrees
+        """
+        hours = self._parseRA(str(ra))
+        self.point2(hours, dec)
+        
+    def point2(self, ra, dec):
+        """Simultaneously point in Right Ascension and declination
+           Right Ascension in degrees
+           Declination Angle in degrees
         """
         az, el = self._RAdec2AzEl(ra, dec)
         AzElPointer.point(self, az, el)
@@ -784,7 +809,7 @@ class TelescopePointer(socketserver.BaseRequestHandler):
         print('RA    :', ra)
         print('Dec   :', dec)
         # Now process
-        self.pointer.set2(ra, dec)
+        self.pointer.point2(ra, dec)
 
         """ Reply
             server->client:
@@ -804,7 +829,7 @@ class TelescopePointer(socketserver.BaseRequestHandler):
             STATUS (4 bytes,signed integer): status of the telescope, currently unused.
                        status=0 means ok, status<0 means some error
         """
-        ra, dec = self.pointer.get() # Get RA and dec values [degrees]
+        ra, dec = self.pointer.get2() # Get RA and dec values [degrees]
 
         # Convert RA to hours
         ra = ra / 360. * 24.
@@ -817,8 +842,15 @@ class TelescopePointer(socketserver.BaseRequestHandler):
         dec = int(dec / 90. * 0x40000000)
         
         # Build reply
-        reply = struct.pack("HHqIii", self.clientReplyLength, self.defaultType, self.defaultUnusedTime, ra, dec, self.defaultReplyStatus)
-        assert(len(reply) == self.clientReplyLength)
+        reply = struct.pack("<HHqIii", self.clientReplyLength, self.defaultType, self.defaultUnusedTime, ra, dec, self.defaultReplyStatus)
+        if (len(reply) != self.clientReplyLength)
+            print('Wrong length of reply:', len(reply)
+            self.request.close()
+            return
+#        print('reply:', sep=' ')
+#        for b in reply:
+#            print(hex(b), sep=' ')
+#        print()
         self.request.send(reply)
         self.request.close()
 
