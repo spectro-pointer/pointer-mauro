@@ -107,5 +107,6 @@ class SimpleTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     # much faster rebinding
     allow_reuse_address = True
 
-    def __init__(self, server_address, RequestHandlerClass):
+    def __init__(self, server_address, RequestHandlerClass, requestHandlerArg):
         socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass)
+        self.pointerInstance = requestHandlerArg # "callback"

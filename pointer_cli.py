@@ -124,7 +124,9 @@ class Pointer_CLI(object):
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
         else: # local pointer
-            if command != 'telescope':
+            if command == 'telescope':
+                options['ptr'] = pointer.RAdecPointer() # To avoid pointer name-space collision
+            else:
                 options['pointer'] = pointer.GenericPointer()
         func(self, **options)
 
@@ -187,7 +189,7 @@ class Pointer_CLI(object):
         self.tell("Server closed")
     serve.cli_options = ((), ())
     
-    def telescope(self):
+    def telescope(self, ptr):
         """Serve local telescope hardware to a telescope client (i.e. stellarium)
 
            Start a server that provides access to the local telescope
@@ -200,7 +202,7 @@ class Pointer_CLI(object):
            or remote computer' telescope control
         """
 #        server = util.SimpleTCPServer(('', 10001), util.SingleTCPHandler)
-        server = util.SimpleTCPServer(('', 10001), pointer.TelescopePointer)
+        server = util.SimpleTCPServer(('', 10001), pointer.TelescopePointer, ptr)
         self.tell("Telescope server started...")
         try:
             server.serve_forever()

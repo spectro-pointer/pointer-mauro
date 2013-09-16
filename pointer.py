@@ -722,7 +722,7 @@ class GenericPointer(RAdecPointer):
 import socketserver
 import struct
 
-class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
+class TelescopePointer(socketserver.BaseRequestHandler):
     """Telescope Server Pointer class"""
     def __init__(self, request, client_addr, server):
         self.maxRequestLength= 1024
@@ -731,10 +731,9 @@ class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
         self.defaultReplyStatus = 0
         self.defaultType = 0
         self.defaultUnusedTime = 0 # FIXME: set time field
+
+        self.pointer = server.pointerInstance # A little trick
         
-        # Pointer instance, finally
-#        self.pointer = RAdecPointer()
-        RAdecPointer.__init__(self)
         super(TelescopePointer, self).__init__(request, client_addr, server)
 
     "One instance per connection."
@@ -785,8 +784,7 @@ class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
         print('RA    :', ra)
         print('Dec   :', dec)
         # Now process
-#        self.pointer.set2(ra, dec)
-        self.set2(ra, dec)
+        self.pointer.set2(ra, dec)
 
         """ Reply
             server->client:
@@ -806,7 +804,7 @@ class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
             STATUS (4 bytes,signed integer): status of the telescope, currently unused.
                        status=0 means ok, status<0 means some error
         """
-        ra, dec = self.get() # Get RA and dec values [degrees]
+        ra, dec = self.pointer.get() # Get RA and dec values [degrees]
 
         # Convert RA to hours
         ra = ra / 360. * 24.
