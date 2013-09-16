@@ -30,6 +30,8 @@
 	- GPS
         Use time, height, speed and heading from GPS
         Independent GPS data module
+        	xml-rpc
+        	
         	time
         	lat
         	lon
@@ -67,13 +69,13 @@
 Functions:
 	- Telescope pointing
 		RA/Dec
-			lat/lon
-				setting/getting
             gps time
 			ntp time
 		Earth rotation compensation
 		
-		Stellarium telescope interface	
+		Stellarium telescope interface
+			client->server message (done)
+			server->client message	
 		
 	- Target tracking
 		moving target detection

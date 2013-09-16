@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 #
-#    This file is part of CNC.
+#    This file is part of Pointer.
 #    It's based on Lukas Lueg's Pyrit codebase.
 
-"""Various utility- and backend-related classes and data for CNC.
+"""Various utility- and backend-related classes and data for Pointer.
 
    Thread is a subclass of threading.Thread that adds a context-manager to
    make it 'stoppable'.
@@ -99,3 +99,13 @@ class AsyncXMLRPCServer(xmlrpc.server.SimpleXMLRPCServer, Thread):
             raise AttributeError
         else:
             return self.methods[method](*params)
+
+import socketserver
+
+class SimpleTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    daemon_threads = True
+    # much faster rebinding
+    allow_reuse_address = True
+
+    def __init__(self, server_address, RequestHandlerClass):
+        socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass)

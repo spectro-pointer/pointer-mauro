@@ -574,11 +574,10 @@ class RAdecPointer(AzElPointer):
         self.lat = -41.14
         self.lon = -71.32
         self.gpsData = {}
-#        self.gps = None # no gps
-        self.gps = GpsPoller(server='pi') # FIXME: config parameter for server
+        self.gps = None # no gps
+#        self.gps = GpsPoller(server='pi') # FIXME: config parameter for server
         if (self.gps):
             self.gps.start()
-            time.sleep(.05)
             self._gpsUpdate() 
 
     def _gpsUpdate(self):
@@ -604,14 +603,9 @@ class RAdecPointer(AzElPointer):
         print('second:', second)
         return hour+minute/60.+second/3600.
     
-    def _RAdec2AzEl(self, ra, dec):
-        # Convert RA string to hours
-        print('RA:', ra, 'dec:', dec)
-        hours = self._parseRA(str(ra))
-        print('hours:', hours)
-        
+    def _RAdec2AzEl(self, raHours, dec):
         # Convert hours to radians
-        ra = sidereal.hoursToRadians(hours)
+        ra = sidereal.hoursToRadians(raHours)
         print('RA(radians):', ra)
         # Convert to azimuth and elevation
         RADec = sidereal.RADec(ra, radians(float(dec)))
@@ -653,7 +647,16 @@ class RAdecPointer(AzElPointer):
            Right Ascension format is "HHMMSS.sss"
            Declination Angle is in degrees
         """
-        az, el = self._RAdec2AzEl(ra, dec)
+        # Convert RA string to hours
+        hours = self._parseRA(str(ra))
+        self.set2(hours, dec)
+    
+    def set2(self, raHours, dec):
+        """Set Right Ascension and declination
+           Right Ascension in hours and fraction 
+           Declination Angle in degrees
+        """
+        az, el = self._RAdec2AzEl(raHours, dec)
         AzElPointer.set(self, az, el)
 
     def move(self, ra, dec):
@@ -715,7 +718,112 @@ class GenericPointer(RAdecPointer):
             AzElPointer.pointEl(self, v2)
         elif coords == 'RAdec':
             RAdecPointer.point(self, v1, v2)
+
+import socketserver
+import struct
+
+class TelescopePointer(socketserver.BaseRequestHandler, RAdecPointer):
+    """Telescope Server Pointer class"""
+    def __init__(self, request, client_addr, server):
+        self.maxRequestLength= 1024
+        self.clientRequestLength = 20
+        self.clientReplyLength = 24
+        self.defaultReplyStatus = 0
+        self.defaultType = 0
+        self.defaultUnusedTime = 0 # FIXME: set time field
         
+        # Pointer instance, finally
+#        self.pointer = RAdecPointer()
+        RAdecPointer.__init__(self)
+        super(TelescopePointer, self).__init__(request, client_addr, server)
+
+    "One instance per connection."
+    def handle(self):
+        # self.request is the client connection
+        """ Request:
+            client->server:
+            MessageGoto (type = 0)
+            LENGTH (2 bytes,integer): length of the message
+            TYPE   (2 bytes,integer): 0
+            TIME   (8 bytes,integer): current time on the client computer in microseconds
+                              since 1970.01.01 UT. Currently unused.
+            RA     (4 bytes,unsigned integer): right ascension of the telescope (J2000)
+                       a value of 0x100000000 = 0x0 means 24h=0h,
+                       a value of 0x80000000 means 12h
+            DEC    (4 bytes,signed integer): declination of the telescope (J2000)
+                       a value of -0x40000000 means -90degrees,
+                       a value of 0x0 means 0degrees,
+                       a value of 0x40000000 means 90degrees
+        """
+        try:
+            length = struct.unpack("H", self.request.recv(2))[0]
+        except struct.error:
+            data = self.request.recv(self.maxRequestLength)
+            if len(data) == 0:
+                print('Client closed connection')
+                self.request.close()
+                return
+            else:
+                print('Data of unknown format received:', data)
+                self.request.close()
+                return
+        if length != self.clientRequestLength:
+            print('Wrong message length:', length)
+            self.request.close()
+            return
+        type = struct.unpack("H", self.request.recv(2))[0]
+        if type != self.defaultType:
+            print('Unknown message type:', type)
+            self.request.close()
+            return
+        # Go ahead
+        data = self.request.recv(length-4)
+        t, ra, dec = struct.unpack("qIi", data)
+        ra  = float(ra) / 0x80000000 * 12.
+        dec = float(dec) /  0x40000000 * 90.
+        print('time  :', t)
+        print('RA    :', ra)
+        print('Dec   :', dec)
+        # Now process
+#        self.pointer.set2(ra, dec)
+        self.set2(ra, dec)
+
+        """ Reply
+            server->client:
+            MessageCurrentPosition (type = 0):
+            
+            LENGTH (2 bytes,integer): length of the message
+            TYPE   (2 bytes,integer): 0
+            TIME   (8 bytes,integer): current time on the server computer in microseconds
+                       since 1970.01.01 UT. Currently unused.
+            RA     (4 bytes,unsigned integer): right ascension of the telescope (J2000)
+                       a value of 0x100000000 = 0x0 means 24h=0h,
+                       a value of 0x80000000 means 12h
+            DEC    (4 bytes,signed integer): declination of the telescope (J2000)
+                       a value of -0x40000000 means -90degrees,
+                       a value of 0x0 means 0degrees,
+                       a value of 0x40000000 means 90degrees
+            STATUS (4 bytes,signed integer): status of the telescope, currently unused.
+                       status=0 means ok, status<0 means some error
+        """
+        ra, dec = self.get() # Get RA and dec values [degrees]
+
+        # Convert RA to hours
+        ra = ra / 360. * 24.
+        
+        print('Current RA [hs] :', ra)
+        print('Current Dec[deg]:', dec)
+        
+        # Format
+        ra = int(ra / 12. * 0x80000000)
+        dec = int(dec / 90. * 0x40000000)
+        
+        # Build reply
+        reply = struct.pack("HHqIii", self.clientReplyLength, self.defaultType, self.defaultUnusedTime, ra, dec, self.defaultReplyStatus)
+        assert(len(reply) == self.clientReplyLength)
+        self.request.send(reply)
+        self.request.close()
+
 #if __name__ == '__main__':
 #    if len(sys.argv) < 3 or not len(sys.argv) & 1:
 #        print >>sys.stderr, "Usage: %s <axis> <angle> ...\naxis : {X|Y|Z|A}\nangle: Angle in degrees(- = CCW)" % sys.argv[0]
