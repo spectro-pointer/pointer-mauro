@@ -31,7 +31,10 @@ import sys
 
 import pointer
 #import config
+
+# XML-RPC server and Simple TCP server
 import util
+# xml-rpc
 import client
 import server
 
@@ -121,8 +124,8 @@ class Pointer_CLI(object):
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
         else: # local pointer
-            options['pointer'] = pointer.GenericPointer()
-        
+            if command != 'telescope':
+                options['pointer'] = pointer.GenericPointer()
         func(self, **options)
 
     def print_help(self):
@@ -164,7 +167,7 @@ class Pointer_CLI(object):
         return pointer
 
     def serve(self, pointer):
-        """Serve local hardware to other Pointer client
+        """Serve local hardware to a Pointer client
 
            Start a server that provides access to the local pointing hardware
            to a Pointer client. TCP-port 17936 must be accessible.
@@ -183,6 +186,28 @@ class Pointer_CLI(object):
                 pass
         self.tell("Server closed")
     serve.cli_options = ((), ())
+    
+    def telescope(self):
+        """Serve local telescope hardware to a telescope client (i.e. stellarium)
+
+           Start a server that provides access to the local telescope
+           to a Slellarium client. The TCP-port 10001 must be accessible.
+
+           For example, on the server (where the telescope is):
+           pyrit telescope
+
+           ... and in Stellarium, configure the server's IP in an 'External software
+           or remote computer' telescope control
+        """
+#        server = util.SimpleTCPServer(('', 10001), util.SingleTCPHandler)
+        server = util.SimpleTCPServer(('', 10001), pointer.TelescopePointer)
+        self.tell("Telescope server started...")
+        try:
+            server.serve_forever()
+        except (KeyboardInterrupt, SystemExit):
+            self.tell("\nShutdown...")
+            server.shutdown()
+    telescope.cli_options = ((), ())
 
     def move(self, pointer, coords=None, v1=0, v2=0):
         """Relative move the given Coords (Azimuth and Elevation [degrees],
@@ -312,4 +337,6 @@ class Pointer_CLI(object):
 #                'setChangeDirSteps:' setChangeDirSteps,
                 'abort': abort,
                 'help': print_help,
-                'serve': serve}
+                'serve': serve,
+                'telescope': telescope
+                }
