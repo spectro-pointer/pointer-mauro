@@ -29,12 +29,13 @@ class gpscommon:
             i = host.rfind(':')
             if i >= 0:
                 host, port = host[:i], host[i+1:]
-            try: port = int(port)
+            try:
+                port = int(port)
             except ValueError:
-                raise socket.error("nonnumeric port")
+                raise socket.error("non-numeric port")
         #if self.verbose > 0:
         #    print 'connect:', (host, port)
-        msg = "getaddrinfo returns an empty list"
+        msg = "Connection failed: getaddrinfo returns an empty list"
         self.sock = None
         for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
@@ -42,8 +43,8 @@ class gpscommon:
                 self.sock = socket.socket(af, socktype, proto)
                 #if self.debuglevel > 0: print 'connect:', (host, port)
                 self.sock.connect(sa)
-            except socket.error as msg:
-                #if self.debuglevel > 0: print 'connect fail:', (host, port)
+            except socket.error as msge:
+                print('Connect fail: (%s %s): %s' % (host, port, msge))
                 self.close()
                 continue
             break
