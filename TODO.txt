@@ -11,7 +11,6 @@
     	
 - GUI:
 	Settings
-	Telescope pointing
 	Window sweeping
 	Moving target tracking
 		webcam based
@@ -28,6 +27,11 @@
 	- Accelerometer based elevation angle setting
 		integrate accel elevation reading into pointing
 	- GPS
+		See gps/TODO.txt
+			Fix connection timeout
+				nonblocking
+			Fix 'msg' error
+			...
         Use time, height, speed and heading from GPS
         Independent GPS data module
         	xml-rpc
@@ -67,15 +71,19 @@
         ...
         
 Functions:
-	- Telescope pointing
+	- Telescope pointing (done)
 		RA/Dec
+			ntp time (done)
             gps time
-			ntp time
 		Earth rotation compensation
 		
-		Stellarium telescope interface
-			client->server message (done)
-			server->client message	
+		Misalignments
+			Magnetic vs. Geographic North
+			True elevation
+			Time skew
+			Heigth compensation 
+			Diurnal Parallax
+			...
 		
 	- Target tracking
 		moving target detection

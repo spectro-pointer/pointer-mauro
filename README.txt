@@ -1,4 +1,4 @@
-Dependencies:
+Extra Dependencies:
 ------------
 
 For Accelerometer(ADXL345B):
