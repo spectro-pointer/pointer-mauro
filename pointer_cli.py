@@ -206,7 +206,7 @@ class Pointer_CLI(object):
         try:
             server.serve_forever()
         except (KeyboardInterrupt, SystemExit):
-            self.tell("\nShutdown...")
+            self.tell("Telescope server closed")
             server.shutdown()
     telescope.cli_options = ((), ())
 

@@ -1,8 +1,6 @@
 - General
-    Fix Z stuck
+    Fix stuck axes
         better construction
-        grease
-        right torque in screws
 
 - OOP
 	Pointer/Axes abstractions
@@ -18,24 +16,22 @@
 - Raspberry Pi
 	webcam
 		Logitech driver
-		Pi supported webcam driver
+		Pi supported webcam driver(!)
 
 	accelerometer
 		better angle estimations
 			
 - pointer server:
+	- Adjust axis speeds to arrive at the same time in elevation and azimuth(nice)
+	
 	- Accelerometer based elevation angle setting
-		integrate accel elevation reading into pointing
+		integrate accel elevation reading into pointing (i.e. elevation control)
+	
 	- GPS
 		See gps/TODO.txt
-			Fix connection timeout
-				nonblocking
-			Fix 'msg' error
-			...
-        Use time, height, speed and heading from GPS
-        Independent GPS data module
-        	xml-rpc
-        	
+	    Use height and time from GPS
+        
+        Independent gpsData class
         	time
         	lat
         	lon
@@ -44,13 +40,16 @@
         	heading
 	
 	duty cycle?
+	
     dir change auto adjust
     	based on accel elevation
     	based on webcam image movement?
+    
     usb webcam
     	compass
     	level
     	target tracking
+    
     config
         server-side config file
         	see pyrit's config
@@ -65,7 +64,7 @@
 
         auto calibrate
         	dir change offsets
-        		using webcam
+        		using webcam/accelerometer
             max speed
                 using webcam/switches
         ...
@@ -75,15 +74,18 @@ Functions:
 		RA/Dec
 			ntp time (done)
             gps time
-		Earth rotation compensation
-		
-		Misalignments
-			Magnetic vs. Geographic North
-			True elevation
-			Time skew
-			Heigth compensation 
-			Diurnal Parallax
-			...
+            
+            diurnal parallax corrections
+            height corrections
+			
+			misalignment sources
+				time skewing
+				true elevation
+				magnetic vs. geographic North
+				...
+            
+		Earth rotation compensation, i.e. tracking
+			(stellarium?)
 		
 	- Target tracking
 		moving target detection
