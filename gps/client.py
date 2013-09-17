@@ -41,12 +41,20 @@ class gpscommon:
             af, socktype, proto, canonname, sa = res
             try:
                 self.sock = socket.socket(af, socktype, proto)
-                #if self.debuglevel > 0: print 'connect:', (host, port)
+                print('Connecting:', (host, port))
+                # Make the main socket non-blocking (for connect())
+                self.sock.settimeout(2.5)
                 self.sock.connect(sa)
             except socket.error as msge:
                 print('Connect fail: (%s %s): %s' % (host, port, msge))
                 self.close()
                 continue
+            except socket.timeout:
+                continue
+            else:
+                # Connected connections are made blocking again
+#                self.sock.settimeout(None)
+                pass
             break
         if not self.sock:
             raise socket.error(msg)
@@ -72,7 +80,10 @@ class gpscommon:
             sys.stderr.write("poll: reading from daemon...\n")
         eol = self.linebuffer.find('\n')
         if eol == -1:
-            frag = self.sock.recv(4096).decode("ascii")
+            try:
+                frag = self.sock.recv(4096).decode("ascii")
+            except socket.timeout:
+                return 0
             self.linebuffer += frag
             if self.verbose > 1:
                 sys.stderr.write("poll: read complete.\n")
