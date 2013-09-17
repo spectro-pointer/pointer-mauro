@@ -574,9 +574,14 @@ class RAdecPointer(AzElPointer):
         # Default values
         self.lat = -41.14
         self.lon = -71.32
+        self.height = 825.
+        self.heading = 0.
+        self.speed = 0.
+        self.climb = 0.
+        self.time = time.time()
         self.gpsData = {}
-        self.gps = None # no gps
-#        self.gps = GpsPoller(server='pi') # FIXME: config parameter for server
+#        self.gps = None # no gps
+        self.gps = GpsPoller(server='pi') # FIXME: config parameter for server
         if (self.gps):
             self.gps.start()
             self._gpsUpdate() 
@@ -584,11 +589,18 @@ class RAdecPointer(AzElPointer):
     def _gpsUpdate(self):
         """ Tries to update our latitude and longitude information from gps
         """
+        # Update height, heading, speed, climb and time too 
+        # FIXME: Implement proper GpsData class 
         try:
             if self.gps:
                 self.gpsData = self.gps.get()
                 self.lat = self.gpsData['lat']
                 self.lon = self.gpsData['lon']
+                self.height = self.gpsData['alt']
+                self.heading = self.gpsData['heading']
+                self.speed = self.gpsData['speed']
+                self.climb = self.gpsData['climb']
+                self.time = self.gpsData['time']
         except (TypeError, KeyError, AttributeError):
             pass
 
