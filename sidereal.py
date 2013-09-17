@@ -1372,6 +1372,14 @@ class AltAz:
                  (tuple(azList)+tuple(altList)) )
 # - - -   c o o r d R o t a t e
 
+def sign(x):
+    x = float(x)
+    return (x > 0.) - (x < 0.)
+
+def sign2(x):
+    x = float(x)
+    return (x >= 0.) - (x < 0.)
+    
 def coordRotate ( x, y, z ):
     """Used to convert between equatorial and horizon coordinates.
 
@@ -1384,8 +1392,8 @@ def coordRotate ( x, y, z ):
     xt  =  asin ( sin(x) * sin(y) +
                   cos(x) * cos(y) * cos(z) )
     #-- 2 --
-    if cos(y) * cos(xt) < 1.e-16:
-        yt = acos(1.)
+    if abs(cos(y) * cos(xt)) < 1.e-16:
+        yt = acos(sign(sin(x) - sin(y) * sin(xt)) * sign2(cos(y) * cos(xt)))
     else:
         yt  =  acos ( ( sin(x) - sin(y) * sin(xt) ) /
                       ( cos(y) * cos(xt) ) )
