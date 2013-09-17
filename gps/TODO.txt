@@ -1,4 +1,2 @@
-- Fix stop/interrupt when no gps data (use a non-blocking socket call)
-
 - Release python3-gps package
 	Test fake.py first

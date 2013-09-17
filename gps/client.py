@@ -42,7 +42,7 @@ class gpscommon:
             try:
                 self.sock = socket.socket(af, socktype, proto)
                 print('Connecting:', (host, port))
-                # Make the main socket non-blocking (for connect())
+                # Make the main socket non-blocking (for connect() and read/recv())
                 self.sock.settimeout(2.5)
                 self.sock.connect(sa)
             except socket.error as msge:

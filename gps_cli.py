@@ -7,10 +7,9 @@ from util import Thread
 from gps import *
 
 class GpsPoller(Thread):
-
     def __init__(self, server='localhost'):
         Thread.__init__(self)
-#        self.setDaemon(True)
+        self.setDaemon(True)
         self.session = gps(host=server, mode=WATCH_ENABLE|WATCH_NEWSTYLE)
         self.current_value = None
 
