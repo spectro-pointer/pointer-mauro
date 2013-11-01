@@ -1,6 +1,12 @@
 - General
     Fix stuck axes
         better construction
+    Fix start up delay
+        ~1 sec.
+        gps?
+
+    Fix client dependencies:
+        no GPIO -> no root
 
 - OOP
 	Pointer/Axes abstractions
@@ -14,6 +20,7 @@
 		webcam based
 	
 - Raspberry Pi
+    Fix /dev/mem access permissions for gpio
 	webcam
 		Logitech driver
 		Pi supported webcam driver(!)
@@ -30,6 +37,8 @@
 	- GPS
 		See gps/TODO.txt
 	    Use height and time from GPS
+
+        Continue if no gps/gpsd(exception handling)
         
         Independent gpsData class
         	time
@@ -82,10 +91,8 @@ Functions:
 				time skewing
 				true elevation
 				magnetic vs. geographic North
-				...
-            
+				...      
 		Earth rotation compensation, i.e. tracking
-			(stellarium?)
 		
 	- Target tracking
 		moving target detection
