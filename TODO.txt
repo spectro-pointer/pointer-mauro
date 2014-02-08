@@ -1,6 +1,4 @@
 - General
-    Fix stuck axes
-        better construction
     Fix start up delay
         ~1 sec.
         gps?
@@ -10,20 +8,22 @@
 
 - OOP
 	Pointer/Axes abstractions
-		Parallel/GPIOAxis?
-    	Parallel with threaded axes
     	
 - GUI:
 	Settings
 	Window sweeping
 	Moving target tracking
 		webcam based
+
+	Light target tracking
+		webcam based
+        opencv
+        client processing?
 	
 - Raspberry Pi
     Fix /dev/mem access permissions for gpio
 	webcam
 		Logitech driver
-		Pi supported webcam driver(!)
 
 	accelerometer
 		better angle estimations
@@ -33,6 +33,10 @@
 	
 	- Accelerometer based elevation angle setting
 		integrate accel elevation reading into pointing (i.e. elevation control)
+        use gyroscope
+
+    - Gyro
+        driver
 	
 	- GPS
 		See gps/TODO.txt
@@ -54,10 +58,11 @@
     	based on accel elevation
     	based on webcam image movement?
     
-    usb webcam
+    webcam
     	compass
     	level
     	target tracking
+        light tracking
     
     config
         server-side config file
