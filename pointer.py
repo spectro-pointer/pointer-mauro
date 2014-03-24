@@ -176,8 +176,7 @@ class Axis(Thread):
         
         # Update initial state
 #        print('Axis %s: limit switch port %d' % (self.name, self.END))
-        if self.END > 0:
-            self.state = GPIO.input(self.END)
+        self.get_state()
         
         self.setDaemon(True)
         self.start()
@@ -266,8 +265,7 @@ class Axis(Thread):
         # Set dir just once
         if gpioFound:
             GPIO.output(port[1], dir)
-            if self.END > 0:
-                self.state = GPIO.input(self.END)
+            self.get_state()
         
         sleepOn = self.sleep[0]
         sleepOff= self.sleep[1]
@@ -282,8 +280,7 @@ class Axis(Thread):
            
             if gpioFound:
                 GPIO.output(port[0], False)
-                if self.END > 0:
-                    self.state = GPIO.input(self.END)
+                self.get_state()
             
             # Absolute steps tracking
             print('pos/steps:', end=' ')
@@ -305,8 +302,9 @@ class Axis(Thread):
         """
             Low-level Axis Homing Method
         """
-        while steps and self.state and self.abortMove is not True:
-            self.move(steps)            
+        self.abortMove = False
+        while steps and self.get_state() and not self.abortMove:
+            self.move(steps)   
 
     def get_state(self):
         """
@@ -314,6 +312,10 @@ class Axis(Thread):
             True  means open
             False means closed
         """
+        if self.END > 0:
+            self.state = GPIO.input(self.END)
+        else:
+            self.state = 0 # Always closed
         return self.state
               
 try:

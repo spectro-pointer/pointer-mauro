@@ -235,10 +235,9 @@ class Pointer_CLI(object):
         """
         print('coords:', coords)
         if coords is not None:
-            pointer.move(coords, v1, v2)
+            pointer.home(coords, v1, v2)
         else:
-            pointer.move('AzEl', v1, v2)
-        pointer.home(coords, v1, v2)
+            pointer.home('AzEl', v1, v2)
     home.cli_options = ((), ('-e', '-a', '-s'))
     
 

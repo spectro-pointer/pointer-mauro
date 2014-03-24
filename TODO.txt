@@ -29,6 +29,8 @@
 		
 	limit switches (integrated into Axis)
 		axis homing function
+			check first, then move
+			dir heuristics
 		save config
 			
 - pointer server:
