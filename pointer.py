@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 # Parallel Port/GPIO Generic Pointer Driver
 #
@@ -155,12 +155,13 @@ class Axis(Thread):
     
         Independent processing for each axis
     """
-    def __init__(self, step_dir):
+    def __init__(self, step_dir, end):
         (step, dir) = step_dir
 
         Thread.__init__(self)
         
         self.PORTS = (step, dir)
+        self.END   = end
         
         self.lastDir = DIR_CW # default
         self.dirChangeSteps = [0, 0]
@@ -173,6 +174,9 @@ class Axis(Thread):
         # request queue        
         self.requests = []
         
+        # Update initial state
+        self.state = GPIO.input(self.END)
+        
         self.setDaemon(True)
         self.start()
         
@@ -182,7 +186,7 @@ class Axis(Thread):
             with self.cv:
                 while len(self.requests) == 0 and self.shallStop is False:
                         self.cv.wait(1)
-                if self.shallStop is not False:
+                if self.shallStop:
                         break
                 request = self.requests.pop(0)
             # process
@@ -256,6 +260,7 @@ class Axis(Thread):
         # Set dir just once
         if gpioFound:
             GPIO.output(port[1], dir)
+            self.state = GPIO.input(self.END)
         
         sleepOn = self.sleep[0]
         sleepOff= self.sleep[1]
@@ -266,10 +271,12 @@ class Axis(Thread):
         while step < round(steps) and self.abortMove is not True:
             if gpioFound:      
                 GPIO.output(port[0], True)
+                self.state = GPIO.input(self.END)
             time.sleep(sleepOn)
            
             if gpioFound:
                 GPIO.output(port[0], False)
+                self.state = GPIO.input(self.END)
             
             # Absolute steps tracking
             print('pos/steps:', end=' ')
@@ -287,6 +294,14 @@ class Axis(Thread):
             time.sleep(sleepOff) # wait off
             step += 1;
 
+    def get_state(self):
+        """
+            Returns limit switch state
+            False means open
+            True  means closed
+        """
+        return not self.state
+              
 try:
     import RPi.GPIO as GPIO
     gpioFound = True
@@ -301,14 +316,24 @@ class GpioPointer(object):
         # 1. First set up RPi.GPIO
         if gpioFound:
             GPIO.setmode(GPIO.BOARD)
-        
-        self.PORTS= ((18, 7), (11, 16), (22, 24), (13, 12)) # (STEP, DIR) GPIO ports for each axis
+        #             X(El)   Y(free)   Z(Az)     A(free)
+        self.PORTS= ((18, 7), (11, 16), (22, 24), (13, 12)) # (STEP, DIR) GPIO ports for each axis      
+        self.ENDS =  (23    , -1      , 21      , -1) # Limit switches GPIO ports
         
         for p in reduce(tuple.__add__, self.PORTS, ()):
             try:
                 if gpioFound:
                     print('port:', p)
                     GPIO.setup(p, GPIO.OUT)
+            except ValueError:
+                print("Invalid port:", p)
+                sys.exit(1)
+                
+        for p in self.ENDS:
+            try:
+                if gpioFound:
+                    print('input port:', p)
+                    GPIO.setup(p, GPIO.IN)
             except ValueError:
                 print("Invalid port:", p)
                 sys.exit(1)
@@ -333,7 +358,7 @@ class Pointer(GpioPointer):
         # Create and Initialize Threads for each axis
         self.Axes = []
         for i, name in enumerate(['X', 'Y', 'Z', 'A']): 
-            self.Axes.append(Axis(self.PORTS[i]))
+            self.Axes.append(Axis(self.PORTS[i], self.ENDS[i]))
             self.Axes[i].name=name
             self.Axes[i].set_sleep((self.sleep_ON[i], self.sleep_OFF[i]))
             self.Axes[i].set_dirChangeSteps(self.dirChangeSteps[i])
