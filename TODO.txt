@@ -5,10 +5,9 @@
 
     Fix client dependencies:
         no GPIO -> no root
+        	works in Ubuntu
+        	what about pi? 
 
-- OOP
-	Pointer/Axes abstractions
-    	
 - GUI:
 	Settings
 	Window sweeping
@@ -27,6 +26,10 @@
 
 	accelerometer
 		better angle estimations
+		
+	limit switches (integrated into Axis)
+		axis homing function
+		save config
 			
 - pointer server:
 	- Adjust axis speeds to arrive at the same time in elevation and azimuth(nice)
