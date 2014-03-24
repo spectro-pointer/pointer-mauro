@@ -105,7 +105,12 @@ class RPCPointer(object):
     def move(self, coords, v1, v2):
         """Moves."""
         return self.cli.move(coords, v1, v2)
-    
+
+    @handle_xmlfault()
+    def home(self, coords, v1, v2):
+        """Homes."""
+        return self.cli.home(coords, v1, v2)
+        
     @handle_xmlfault()
     def point(self, coords, v1, v2):
         """Points."""

@@ -210,7 +210,7 @@ class Pointer_CLI(object):
             server.shutdown()
     telescope.cli_options = ((), ())
 
-    def move(self, pointer, coords=None, v1=0, v2=0):
+    def move(self, pointer, coords=None, v1=0., v2=0.):
         """Relative move the given Coords (Azimuth and Elevation [degrees],
             or Right Ascension [HHMMSS.sss] and Declination [degrees])
             For example:
@@ -225,6 +225,22 @@ class Pointer_CLI(object):
         else:
             pointer.move('AzEl', v1, v2)
     move.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
+    
+    def home(self, pointer, coords=None, v1=0., v2=0.):
+        """Homes-in in Azimuth and Elevation, using the given step angles [degrees],
+            For example:
+            pointer -a 1 -e 1 home
+            pointer -a 1 home
+            pointer -a home (uses default homing step (1°) for azimuth, no homing for elevation)
+        """
+        print('coords:', coords)
+        if coords is not None:
+            pointer.move(coords, v1, v2)
+        else:
+            pointer.move('AzEl', v1, v2)
+        pointer.home(coords, v1, v2)
+    home.cli_options = ((), ('-e', '-a', '-s'))
+    
 
     def point(self, pointer, coords=None, v1=None, v2=None):
         """Absolute move to the given Coords (Azimuth and Elevation [degrees],
@@ -327,7 +343,8 @@ class Pointer_CLI(object):
         pointer.abort()
     abort.cli_options = ((), ('-s'))
         
-    commands = {'move': move,
+    commands = {'home': home,
+                'move': move,
                 'point': point,
                 'get' : get,
                 'getSpeed' : getSpeed,

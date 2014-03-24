@@ -175,7 +175,9 @@ class Axis(Thread):
         self.requests = []
         
         # Update initial state
-        self.state = GPIO.input(self.END)
+#        print('Axis %s: limit switch port %d' % (self.name, self.END))
+        if self.END > 0:
+            self.state = GPIO.input(self.END)
         
         self.setDaemon(True)
         self.start()
@@ -190,12 +192,16 @@ class Axis(Thread):
                         break
                 request = self.requests.pop(0)
             # process
-            print("Request received in thread %s: req: %d" % (self.name, request))
-            self.move(request)      
+            print("Request received in thread %s: req:" % (self.name), request)
+            req = request[0]
+            if req == 'move':
+                self.move(request[1])
+            elif req == 'home':
+                self.home(request[1])
 
     def put_request(self, request):
         # write request to mqueue
-        print('Request to thread %s: steps: %d' % (self.name, request))
+        print('Request to thread %s:' % (self.name), request)
         with self.cv:
             self.requests.append(request)
             self.cv.notifyAll()
@@ -260,7 +266,8 @@ class Axis(Thread):
         # Set dir just once
         if gpioFound:
             GPIO.output(port[1], dir)
-            self.state = GPIO.input(self.END)
+            if self.END > 0:
+                self.state = GPIO.input(self.END)
         
         sleepOn = self.sleep[0]
         sleepOff= self.sleep[1]
@@ -271,12 +278,12 @@ class Axis(Thread):
         while step < round(steps) and self.abortMove is not True:
             if gpioFound:      
                 GPIO.output(port[0], True)
-                self.state = GPIO.input(self.END)
             time.sleep(sleepOn)
            
             if gpioFound:
                 GPIO.output(port[0], False)
-                self.state = GPIO.input(self.END)
+                if self.END > 0:
+                    self.state = GPIO.input(self.END)
             
             # Absolute steps tracking
             print('pos/steps:', end=' ')
@@ -293,14 +300,21 @@ class Axis(Thread):
             print()
             time.sleep(sleepOff) # wait off
             step += 1;
+            
+    def home(self, steps):
+        """
+            Low-level Axis Homing Method
+        """
+        while steps and self.state and self.abortMove is not True:
+            self.move(steps)            
 
     def get_state(self):
         """
             Returns limit switch state
-            False means open
-            True  means closed
+            True  means open
+            False means closed
         """
-        return not self.state
+        return self.state
               
 try:
     import RPi.GPIO as GPIO
@@ -321,22 +335,24 @@ class GpioPointer(object):
         self.ENDS =  (23    , -1      , 21      , -1) # Limit switches GPIO ports
         
         for p in reduce(tuple.__add__, self.PORTS, ()):
-            try:
-                if gpioFound:
-                    print('port:', p)
-                    GPIO.setup(p, GPIO.OUT)
-            except ValueError:
-                print("Invalid port:", p)
-                sys.exit(1)
+            if p > 0:
+                try:
+                    if gpioFound:
+                        print('port:', p)
+                        GPIO.setup(p, GPIO.OUT)
+                except ValueError:
+                    print("Invalid port:", p)
+                    sys.exit(1)
                 
         for p in self.ENDS:
-            try:
-                if gpioFound:
-                    print('input port:', p)
-                    GPIO.setup(p, GPIO.IN)
-            except ValueError:
-                print("Invalid port:", p)
-                sys.exit(1)
+            if p > 0:
+                try:
+                    if gpioFound:
+                        print('input port:', p)
+                        GPIO.setup(p, GPIO.IN)
+                except ValueError:
+                    print("Invalid port:", p)
+                    sys.exit(1)
                 
 #class Pointer(ParallelPointer):
 class Pointer(GpioPointer):
@@ -377,16 +393,22 @@ class Pointer(GpioPointer):
             self.Axes[ax].set_dirChangeSteps(steps)
         
     def move(self, axes):
-        """High-level Simultaneous Axis Move Function
-           Threaded Version 
-           Simultaneously move each axis from 'axes', their given number of steps
-           A negative step is CCW
+        """
+            High-level Simultaneous Axis Move Function
+            Simultaneously move each axis from 'axes', their given number of steps
+            A negative step means CCW
         """
         for axis, step in list(axes.items()):
-            self.Axes[axis].put_request(step)
+            self.Axes[axis].put_request(['move', step])
+
+    def home(self, axes):
+        """
+            High-level Axis Homing Function
+        """
+        for axis, step in list(axes.items()):
+            self.Axes[axis].put_request(['home', step])
 
 #from accelerometer import AnglesSensor
-
 class AnglesPointer(Pointer):
     """Angles Pointer class"""
     def __init__(self):
@@ -420,9 +442,10 @@ class AnglesPointer(Pointer):
             self.Axes[axis].set_pos(steps)
 
     def move(self, axesNames):
-        """Simultaneously move each axis from 'axesNames' the given angle
-           Angles are in degrees
-           A negative angle means CCW
+        """
+            Simultaneously move each axis from 'axesNames' the given angle
+            Angles are in degrees
+            A negative angle means CCW
         """
         ax = dict()
         for axis, angle in list(axesNames.items()):
@@ -430,11 +453,25 @@ class AnglesPointer(Pointer):
             steps = angle / self.stepAngle[self.axes[axis]]
             ax[self.axes[axis]] = int(round(steps))
         Pointer.move(self, ax)
+
+    def home(self, axesNames):
+        """
+            Home-in each axis from 'axesNames', with a given angle step
+            Angles are in degrees
+            A negative angle means CCW
+        """
+        ax = dict()
+        for axis, angle in list(axesNames.items()):
+            print(axis, angle)
+            steps = angle / self.stepAngle[self.axes[axis]]
+            ax[self.axes[axis]] = int(round(steps))
+        Pointer.home(self, ax)
     
     def point(self, axesNames):
-        """Simultaneously point each axis from 'axesNames' to the given angle
-           Angles are in degrees
-           A negative angle means CCW
+        """
+            Simultaneously point each axis from 'axesNames' to the given angle
+            Angles are in degrees
+            A negative angle means CCW
         """
         ax = dict()
         for axis, angle in list(axesNames.items()):
@@ -451,8 +488,9 @@ class AnglesPointer(Pointer):
         Pointer.move(self, ax)
 
     def getSpeed(self, axesNames):
-        """Get the speed for each axis from 'axesNames'
-           Speeds are in degrees/s
+        """
+            Get the speed for each axis from 'axesNames'
+            Speeds are in degrees/s
         """
         for axis in list(axesNames.keys()):
             ax = self.axes[axis]
@@ -462,7 +500,8 @@ class AnglesPointer(Pointer):
         return axesNames
 
     def setSpeed(self, axesNames):
-        """ High level speed setting for each axis
+        """ 
+            High level speed setting for each axis
             Speed Units are degrees/second
         """
         for axis, speed in list(axesNames.items()):
@@ -474,7 +513,7 @@ class AnglesPointer(Pointer):
 
 class AzElPointer(AnglesPointer):
     """Azimuth/Elevation Pointer class
-       0º Azimuth is North. Azimuth is positive eastward
+       0° Azimuth is North. Azimuth is positive eastward
        Angles are in degrees
     """
     def __init__(self):
@@ -493,6 +532,19 @@ class AzElPointer(AnglesPointer):
         for axis, angles in zip(('Az', 'El'), (azimuth, elevation)): 
             ax[axis] = float(angles)
         AnglesPointer.move(self, ax)
+
+    def home(self, azimuth, elevation):
+        """
+            Homes-in in azimuth and elevation
+            Step angles are in degrees
+            A negative angle means CCW
+            Zero means no home-in for that axis
+        """
+        # Concurrent movements
+        ax=dict()
+        for axis, angles in zip(('Az', 'El'), (azimuth, elevation)): 
+            ax[axis] = float(angles)
+        AnglesPointer.home(self, ax)
         
     def point(self, azimuth, elevation):
         """Simultaneously point in azimuth and elevation
@@ -713,7 +765,7 @@ class RAdecPointer(AzElPointer):
         """
         hours = self._parseRA(str(ra))
         self.move2(hours, dec)
-        
+               
     def move2(self, ra, dec):
         """Simultaneously move in Right Ascension and declination
            Right Ascension in degrees

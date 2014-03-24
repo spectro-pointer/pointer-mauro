@@ -42,6 +42,7 @@ class PointerServer(util.AsyncXMLRPCServer):
     def __init__(self, pointer, iface='', port=17936):
         util.AsyncXMLRPCServer.__init__(self, iface, port)
         self.methods['move'] = self.move
+        self.methods['home'] = self.home
         self.methods['point'] = self.point
         self.methods['get'] = self.get
         self.methods['set'] = self.set
@@ -80,6 +81,12 @@ class PointerServer(util.AsyncXMLRPCServer):
     
     def move(self, coords, v1, v2):
         self.pointer.move(coords, v1, v2)
+        return True
+
+    def home(self, coords, v1, v2):
+        # FIXME: don't ignore coords
+        assert(coords == 'AzEl')
+        self.pointer.home(v1, v2)
         return True
     
     def point(self, coords, v1, v2):
