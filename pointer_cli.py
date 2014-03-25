@@ -219,11 +219,9 @@ class Pointer_CLI(object):
             pointer -e 15 move
             pointer -r 123456.789 -d 1.23 move
         """
-        print('coords:', coords)
-        if coords is not None:
-            pointer.move(coords, v1, v2)
-        else:
-            pointer.move('AzEl', v1, v2)
+        if coords in (None, 'Az', 'El'):
+            coords = 'AzEl'
+        pointer.move(coords, v1, v2)
     move.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
     
     def home(self, pointer, coords=None, v1=0., v2=0.):
@@ -233,13 +231,10 @@ class Pointer_CLI(object):
             pointer -a 1 home
             pointer -a home (uses default homing step (1°) for azimuth, no homing for elevation)
         """
-        print('coords:', coords)
-        if coords is not None:
-            pointer.home(coords, v1, v2)
-        else:
-            pointer.home('AzEl', v1, v2)
-    home.cli_options = ((), ('-e', '-a', '-s'))
-    
+        if coords in (None, 'Az', 'El'):
+            coords = 'AzEl'
+        pointer.home(coords, v1, v2)
+    home.cli_options = ((), ('-e', '-a', '-s'))   
 
     def point(self, pointer, coords=None, v1=None, v2=None):
         """Absolute move to the given Coords (Azimuth and Elevation [degrees],

@@ -820,6 +820,11 @@ class GenericPointer(RAdecPointer):
             AzElPointer.move(self, v1, v2)
         elif coords == 'RAdec':
             RAdecPointer.move(self, v1, v2)
+            
+    def home(self, coords, v1, v2):
+        print('coords:', coords)
+        if coords == 'AzEl':
+            AzElPointer.move(self, v1, v2)
 
     def point(self, coords, v1, v2):
         print('coords:', coords)

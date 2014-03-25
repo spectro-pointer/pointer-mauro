@@ -84,9 +84,7 @@ class PointerServer(util.AsyncXMLRPCServer):
         return True
 
     def home(self, coords, v1, v2):
-        # FIXME: don't ignore coords
-        assert(coords == 'AzEl')
-        self.pointer.home(v1, v2)
+        self.pointer.home(coords, v1, v2)
         return True
     
     def point(self, coords, v1, v2):
