@@ -657,6 +657,7 @@ class RAdecPointer(AzElPointer):
         self.heading = 0.
         self.speed = 0.
         self.climb = 0.
+        self.magneticDeclination = +7.0 # [degrees]
         self.time = time.time()
         self.gpsData = {}
 #        self.gps = None # no gps
