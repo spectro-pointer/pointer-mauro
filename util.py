@@ -31,7 +31,7 @@ import threading
 
 #import config
 
-VERSION = "0.5"
+VERSION = "0.6"
 __version__ = VERSION
 
 
