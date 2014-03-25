@@ -192,14 +192,19 @@ class Axis(Thread):
                         self.cv.wait(1)
                 if self.shallStop:
                         break
+            # sequential processing
+            while self.moving: # not aborted
+                time.sleep(.1)
+            self.moving = True
+            if len(self.requests):
                 request = self.requests.pop(0)
-            # process
-            print("Request received in thread %s: req:" % (self.name), request)
-            req = request[0]
-            if req == 'move':
-                self.move(request[1])
-            elif req == 'home':
-                self.home(request[1])
+                print("Request received in thread %s: req:" % (self.name), request)
+                req = request[0]
+                if req == 'move':
+                    self.move(request[1])
+                elif req == 'home':
+                    self.home(request[1])
+            self.moving = False
 
     def put_request(self, request):
         # write request to mqueue
@@ -245,6 +250,10 @@ class Axis(Thread):
         self.pos = pos
         
     def abort(self):
+        # abort all pending requests
+        with self.cv:
+            self.requests = []
+        # abort current move
         self.abortMove = True
     
     def is_moving(self):
