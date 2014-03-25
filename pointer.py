@@ -719,7 +719,7 @@ class RAdecPointer(AzElPointer):
         self.lat = lat
         self.lon = lon
 
-    def get2(self):
+    def get(self):
         """ Get actual RA and Dec values
             RA format is 'HHMMSS.sss'
             Dec in degrees
@@ -729,7 +729,7 @@ class RAdecPointer(AzElPointer):
         return ra, dec
         
     def get2(self):
-        """ Get actual RA and Dec values
+        """ Get actual RA and Dec values, in degrees
         """
         Az, Alt = AzElPointer.get(self)
         
@@ -760,22 +760,6 @@ class RAdecPointer(AzElPointer):
         az, el = self._RAdec2AzEl(raHours, dec)
         AzElPointer.set(self, az, el)
 
-    def move(self, ra, dec):
-        """Simultaneously move in Right Ascension and declination
-           Right Ascension format is "HHMMSS.sss"
-           Declination Angle is in degrees
-        """
-        hours = self._parseRA(str(ra))
-        self.move2(hours, dec)
-               
-    def move2(self, ra, dec):
-        """Simultaneously move in Right Ascension and declination
-           Right Ascension in degrees
-           Declination Angle in degrees
-        """
-        az, el = self._RAdec2AzEl(hours, dec)
-        AzElPointer.move(self, az, el)
-              
     def point(self, ra, dec):
         """Simultaneously point in Right Ascension and declination
            Right Ascension format is "HHMMSS.sss"
@@ -824,7 +808,7 @@ class GenericPointer(RAdecPointer):
     def home(self, coords, v1, v2):
         print('coords:', coords)
         if coords == 'AzEl':
-            AzElPointer.move(self, v1, v2)
+            AzElPointer.home(self, v1, v2)
 
     def point(self, coords, v1, v2):
         print('coords:', coords)
