@@ -7,7 +7,9 @@
         no GPIO -> no root
         	works in Ubuntu
         	what about pi? 
-
+- Axis:
+	non-concurrent(i.e. sequential) axes movements
+	
 - GUI:
 	Settings
 	Window sweeping
@@ -28,10 +30,9 @@
 		better angle estimations
 		
 	limit switches (integrated into Axis)
-		axis homing function
-			check first, then move
+		homing(done)
 			dir heuristics
-		save config
+			config file
 			
 - pointer server:
 	- Adjust axis speeds to arrive at the same time in elevation and azimuth(nice)
@@ -101,8 +102,9 @@ Functions:
 				time skewing
 				true elevation
 				magnetic vs. geographic North
+					gps north?
+					magnetic declination table
 				...      
-		Earth rotation compensation, i.e. tracking
 		
 	- Target tracking
 		moving target detection

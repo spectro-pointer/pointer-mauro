@@ -163,10 +163,13 @@ class Axis(Thread):
         self.PORTS = (step, dir)
         self.END   = end
         
+        
         self.lastDir = DIR_CW # default
         self.dirChangeSteps = [0, 0]
         self.pos = 0.
         self.sleep = [0.050, 0.050] # default
+
+        self.moving = False
         self.abortMove = False
         
         self.cv = Condition()
@@ -243,12 +246,16 @@ class Axis(Thread):
         
     def abort(self):
         self.abortMove = True
-
+    
+    def is_moving(self):
+        return self.moving
+    
     def move(self, steps):
         """Low-level Axis Move Function
            Move a given number of steps
            A negative step is CCW
         """
+        self.moving = True
         dir = DIR_CW
         changeDir = False
         if steps < 0: 
@@ -280,23 +287,24 @@ class Axis(Thread):
            
             if gpioFound:
                 GPIO.output(port[0], False)
-                self.get_state()
+                self.get_state() # Update limit switches
             
             # Absolute steps tracking
-            print('pos/steps:', end=' ')
-            print(dir, self.pos, '/', end=' ')
+#            print('pos/steps:', end=' ')
+#            print(dir, self.pos, '/', end=' ')
             if changeDir:
                 if changeDirSteps < self.dirChangeSteps[dir]:
-                    print('changeDir:', changeDirSteps, end=' ')
+#                    print('changeDir:', changeDirSteps, end=' ')
                     changeDirSteps += 1
                 else:
                     self.pos -= (dir - 1 * (dir == 0))
             else:
                 self.pos -= (dir - 1 * (dir == 0))
-            print(steps, ',', end=' ')
-            print()
+#            print(steps, ',', end=' ')
+#            print()
             time.sleep(sleepOff) # wait off
-            step += 1;
+            step += 1
+        self.moving = False
             
     def home(self, steps):
         """
@@ -304,7 +312,7 @@ class Axis(Thread):
         """
         self.abortMove = False
         while steps and self.get_state() and not self.abortMove:
-            self.move(steps)   
+            self.move(steps)
 
     def get_state(self):
         """
@@ -381,6 +389,12 @@ class Pointer(GpioPointer):
             self.Axes[i].set_sleep((self.sleep_ON[i], self.sleep_OFF[i]))
             self.Axes[i].set_dirChangeSteps(self.dirChangeSteps[i])
 
+    def is_moving(self):
+        moving = False
+        for axis in self.Axes:
+            moving |= axis.is_moving()
+        return moving
+    
     def abort(self):
         for axis in self.Axes:
             axis.abort()

@@ -1388,11 +1388,15 @@ def coordRotate ( x, y, z ):
           xt=arcsin(sin(x)*sin(y)+cos(x)*cos(y)*cos(z)) and
           yt=arccos((sin(x)-sin(y)*sin(xt))/(cos(y)*cos(xt))) ]
     """
+#    print('x:', x)
+#    print('y:', y)
+#    print('z:', z)
     #-- 1 --
     xt  =  asin ( sin(x) * sin(y) +
                   cos(x) * cos(y) * cos(z) )
     #-- 2 --
-    if abs(cos(y) * cos(xt)) < 1.e-16:
+#    print('abs(c(y)*c(xt):', abs(cos(y) * cos(xt)))
+    if abs(cos(y) * cos(xt)) < 1.e-12:
         yt = acos(sign(sin(x) - sin(y) * sin(xt)) * sign2(cos(y) * cos(xt)))
     else:
         yt  =  acos ( ( sin(x) - sin(y) * sin(xt) ) /

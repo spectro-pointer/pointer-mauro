@@ -117,17 +117,46 @@ class TelescopeRequestHandler(socketserver.BaseRequestHandler):
 
         self.pointer = server.pointerInstance # A little trick
         
+        """ Earth rotation compensation """
+        self.cv = threading.Condition()
+        self.rotationInterval = 10. # [seconds]
+        self.ra = 0.
+        self.dec = 0.
+
         super(TelescopeRequestHandler, self).__init__(request, client_addr, server)
+
+    def earthRotation(self):
+        """ 
+            Earth's rotation compensation
+            One turn in 24 hs.
+        """
+        print('earthRotation starts')
+        while True:
+            print('RA (earth):', self.ra)
+            print('Dec(earth):', self.dec)
+            with self.cv:
+                if self.ra or self.dec:
+                    self.pointer.point2(self.ra, self.dec)
+            time.sleep(self.rotationInterval)
 
     "One instance per connection."
     def handle(self):
         # self.request is the client connection
         """Start a new thread to keep sending our position."""
-        t = threading.Thread(target = self.sendCurrentPosition)
+        t1 = threading.Thread(target = self.sendCurrentPosition)
 #        if self.daemon_threads:
-#        t.setDaemon (1)
-        t.start()
+#            t2.setDaemon (1)
+        t1.start()
+        
+#        """Start a new thread to compensate Earth's rotation."""
+        t2 = threading.Thread(target = self.earthRotation)
+#        if self.daemon_threads:
+##            t2.setDaemon(1)
+        t2.start()
 
+        # TODO: homing-in at (first?) connection time (blocking)
+        # (or, at start up).
+        
         """Use this thread to process incoming requests."""
         self.processGoToRequest()
 
@@ -178,11 +207,24 @@ class TelescopeRequestHandler(socketserver.BaseRequestHandler):
             t, ra, dec = struct.unpack("qIi", data)
             ra  = float(ra) / 0x80000000 * 12.
             dec = float(dec) /  0x40000000 * 90.
-            print('time  :', t)
-            print('RA    :', ra)
-            print('Dec   :', dec)
             # Now process
-            self.pointer.point2(ra, dec)
+            with self.cv:
+                print('Time(target)    :', t)
+                print('RA (target)[deg]:', ra)
+                print('Dec(target)[deg]:', dec)
+                self.pointer.point2(ra, dec)
+                # Wait for until it arrives...
+                time.sleep(1)
+                while self.pointer.is_moving():
+                    ra2, dec2 = self.pointer.get2()
+                    print('RA (waiting)[deg]:', ra2)
+                    print('Dec(waiting)[deg] :', dec2)
+                    time.sleep(1)
+                # Update fixed position
+                self.ra = ra
+                self.dec = dec
+                print('RA (updated)[deg]:', self.ra)
+                print('Dec(updated)[deg]:', self.dec)
 #            self.request.close()
             time.sleep(1)
         
@@ -207,13 +249,12 @@ class TelescopeRequestHandler(socketserver.BaseRequestHandler):
         """
         while True:            
             ra, dec = self.pointer.get2() # Get RA and dec values [degrees]
+#            print('RA (current)[deg]:', ra)
+#            print('Dec(current)[deg]:', dec)
 
             # Convert RA to hours
             ra = ra / 360. * 24.
-        
-            print('Current RA [hs] :', ra)
-            print('Current Dec[deg]:', dec)
-        
+                
             # Format
             ra = int(ra / 12. * 0x80000000)
             dec = int(dec / 90. * 0x40000000)
