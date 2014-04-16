@@ -352,6 +352,7 @@ class GpioPointer(object):
         #             X(El)   Y(free)   Z(Az)     A(free)
         self.PORTS= ((18, 7), (11, 16), (22, 24), (13, 12)) # (STEP, DIR) GPIO ports for each axis      
         self.ENDS =  (23    , -1      , 21      , -1) # Limit switches GPIO ports
+        self.LED = 11 # FIXME: also used by the Y-axis step
         
         for p in reduce(tuple.__add__, self.PORTS, ()):
             if p > 0:
@@ -432,6 +433,12 @@ class Pointer(GpioPointer):
         """
         for axis, step in list(axes.items()):
             self.Axes[axis].put_request(['home', step])
+    
+    def ledOn(self):
+        GPIO.output(self.LED, True)
+
+    def ledOff(self):
+        GPIO.output(self.LED, False)
 
 #from accelerometer import AnglesSensor
 class AnglesPointer(Pointer):

@@ -50,6 +50,8 @@ class PointerServer(util.AsyncXMLRPCServer):
         self.methods['setSpeed'] = self.setSpeed
         self.methods['getLatLon'] = self.getLatLon
         self.methods['setLatLon'] = self.setLatLon
+        self.methods['ledOn'] = self.ledOn
+        self.methods['ledOff'] = self.ledOff
         self.methods['abort'] = self.abort
         self.pointer = pointer
         self.start()
@@ -73,6 +75,14 @@ class PointerServer(util.AsyncXMLRPCServer):
 
     def setLatLon(self, lat, lon):
         self.pointer.setLatLon(lat, lon)
+        return True
+
+    def ledOn(self):
+        self.pointer.ledOn()
+        return True
+
+    def ledOff(self):
+        self.pointer.ledOff()
         return True
     
     def set(self, coords, v1, v2):

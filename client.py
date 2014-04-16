@@ -140,14 +140,24 @@ class RPCPointer(object):
 
     @handle_xmlfault()
     def getLatLon(self):
-        """Gets actual Azimuth and Elevation speeds."""
+        """Gets actual Latitude and Longitude."""
         lat, lon = self.cli.getLatLon()
         return lat, lon
 
     @handle_xmlfault()
     def setLatLon(self, lat, lon):
-        """Sets Speeds."""
+        """Sets Latitude and Longitude."""
         return self.cli.setLatLon(lat, lon)
+
+    @handle_xmlfault()
+    def ledOn(self):
+        """Turns the "live zero" led on."""
+        return self.cli.ledOn()
+
+    @handle_xmlfault()
+    def ledOff(self):
+        """Turns the "live zero" led off."""
+        return self.cli.ledOff()
 
     @handle_xmlfault()
     def abort(self):

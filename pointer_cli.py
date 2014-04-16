@@ -328,6 +328,22 @@ class Pointer_CLI(object):
         pointer.setLatLon(lat, lon)
     setLatLon.cli_options = (('--lat', '--lon'), ('-s'))
 
+    def ledOn(self, pointer):
+        """Turns the "live zero" led on
+            For example:
+            pointer -s pi ledOn
+        """
+        pointer.ledOn()
+    ledOn.cli_options = ((), ('-s'))
+
+    def ledOff(self, pointer):
+        """Turns the "live zero" led off
+            For example:
+            pointer -s pi ledOff
+        """
+        pointer.ledOff()
+    ledOff.cli_options = ((), ('-s'))
+
     def abort(self, pointer):
         """Abort currently executing command
             For example:
@@ -345,7 +361,8 @@ class Pointer_CLI(object):
                 'getLatLon' : getLatLon,
                 'setLatLon' : setLatLon,
                 'set' : set,
-#                'setChangeDirSteps:' setChangeDirSteps,
+                'ledOn': ledOn,
+                'ledOff': ledOff,
                 'abort': abort,
                 'help': print_help,
                 'serve': serve,
