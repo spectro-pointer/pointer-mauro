@@ -211,8 +211,7 @@ class Pointer_CLI(object):
     telescope.cli_options = ((), ())
 
     def move(self, pointer, coords=None, v1=0., v2=0.):
-        """Relative move the given Coords (Azimuth and Elevation [degrees],
-            or Right Ascension [HHMMSS.sss] and Declination [degrees])
+        """Relative move the given Coords (Azimuth and Elevation [degrees], or Right Ascension [HHMMSS.sss] and Declination [degrees])
             For example:
             pointer -a 10 -e 5 move
             pointer -a 45 move
@@ -302,7 +301,7 @@ class Pointer_CLI(object):
     getSpeed.cli_options = ((), ('-s'))
 
     def setSpeed(self, pointer, azimuth=1., elevation=1.):
-        """ Set pointer speed to the given Azimuth and Elevation speeds [degrees/s]
+        """Set pointer speed to the given Azimuth and Elevation speeds [degrees/s]
             Defaults: Azimuth: 1°/s, Elevation: 1°/s
             For example:
             pointer -e 2 setSpeed
@@ -311,7 +310,7 @@ class Pointer_CLI(object):
     setSpeed.cli_options = ((), ('-e', '-a', '-s'))
 
     def getLatLon(self, pointer):
-        """ Get actual pointer Latitude and Longitude settings [degrees]
+        """Get actual pointer Latitude and Longitude settings [degrees]
             For example:
             pointer getLatLon
         """
