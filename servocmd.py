@@ -114,9 +114,9 @@ class showCapture(wx.Panel):
         self.SetSize((width, height))
         self.ancho = width
         self.alto = height
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
 
-        self.bmp = wx.BitmapFromBuffer(width, height, frame)
+        self.bmp = wx.BitmapFromBufferRGBA(width, height, frame)
 
         self.timer = wx.Timer(self)
         self.timer.Start(10000./fps)
@@ -145,8 +145,8 @@ class showCapture(wx.Panel):
         cv2.line(frame, (x-10, y), (x+10, y), (0, 0, 255))
         
         if ret:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.bmp.CopyFromBuffer(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+            self.bmp.CopyFromBufferRGBA(frame)
             self.Refresh()
             
     def onClick(self, e):
