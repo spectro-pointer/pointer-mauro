@@ -7,10 +7,30 @@
         no GPIO -> no root
         	works in Ubuntu
         	what about pi? 
-- Axis:
-	non-concurrent(i.e. sequential) axes movements
-	
-- GUI:
+- Axis
+	homing(done)
+		dir heuristics
+		config file
+
+- Config file
+    server-side
+    	see pyrit's config
+    	save pos/settings at exit
+
+    set change dir adjust offsets
+    set relative to zero offsets
+    	True North(Including magnetic declination)
+    	0º Elevation
+
+    set speed/ on/off delay
+
+    auto calibrate
+    	dir change offsets
+    		using webcam/accelerometer
+        max speed
+            using webcam/switches
+    ...
+- GUI
 	Settings
 	Window sweeping
 	Moving target tracking
@@ -28,13 +48,11 @@
 
 	accelerometer
 		better angle estimations
-		
-	limit switches (integrated into Axis)
-		homing(done)
-			dir heuristics
-			config file
-			
+				
 - pointer server:
+	- Switch 'telescope' vs 'serve' modes
+		support both at the same time?
+	
 	- Adjust axis speeds to arrive at the same time in elevation and azimuth(nice)
 	
 	- Accelerometer based elevation angle setting
@@ -70,24 +88,6 @@
     	target tracking
         light tracking
     
-    config
-        server-side config file
-        	see pyrit's config
-        	save pos/settings at exit
-
-        set change dir adjust offsets
-        set relative to zero offsets
-        	True North(Including magnetic declination)
-        	0º Elevation
-
-        set speed/ on/off delay
-
-        auto calibrate
-        	dir change offsets
-        		using webcam/accelerometer
-            max speed
-                using webcam/switches
-        ...
         
 Functions:
 	- Telescope pointing (done)

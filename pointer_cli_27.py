@@ -29,14 +29,14 @@ import getopt
 import sys
 #import time
 
-import pointer
+#import pointer
 #import config
 
 # XML-RPC server and Telescope Server
-import util
+import util_27 as util
 # xml-rpc
-import client
-import server
+import client_27 as client
+#import server
 
 class PointerRuntimeError(RuntimeError):
     pass
@@ -123,11 +123,11 @@ class Pointer_CLI(object):
         elif '-s' in args:
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
-        else: # local pointer
-            if command == 'telescope':
-                options['pointer'] = pointer.RAdecPointer()
-            else:
-                options['pointer'] = pointer.GenericPointer()
+#        else: # local pointer
+#            if command == 'telescope':
+#                options['pointer'] = pointer.RAdecPointer()
+#            else:
+#                options['pointer'] = pointer.GenericPointer()
         func(self, **options)
 
     def print_help(self):
@@ -221,7 +221,7 @@ class Pointer_CLI(object):
         if coords in (None, 'Az', 'El'):
             coords = 'AzEl'
         pointer.move(coords, v1, v2)
-    move.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
+    move.cli_options = (('-s'), ('-e', '-a', '-r', '-d'))
     
     def home(self, pointer, coords=None, v1=0., v2=0.):
         """Homes-in in Azimuth and Elevation, using the given step angles [degrees],
@@ -233,7 +233,7 @@ class Pointer_CLI(object):
         if coords in (None, 'Az', 'El'):
             coords = 'AzEl'
         pointer.home(coords, v1, v2)
-    home.cli_options = ((), ('-e', '-a', '-s'))   
+    home.cli_options = (('-s'), ('-e', '-a'))   
 
     def point(self, pointer, coords=None, v1=None, v2=None):
         """Absolute move to the given Coords (Azimuth and Elevation [degrees],
@@ -256,7 +256,7 @@ class Pointer_CLI(object):
 #            pointer.point(v1, v2)
 #        else:
 #            pointer.point(0., 0.)
-    point.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
+    point.cli_options = (('-s'), ('-e', '-a', '-r', '-d'))
 
     def get(self, pointer):
         """Get actual pointer Azimuth and Elevation angles [degrees]
@@ -272,7 +272,7 @@ class Pointer_CLI(object):
         self.tell("RA: %.2f, " \
                   "Dec: %.2f" \
                   % (v1, v2))
-    get.cli_options = ((), ('-s'))
+    get.cli_options = (('-s'), ())
             
     def set(self, pointer, coords=None, v1=None, v2=None):
         """Set pointer position to the given Coords (Azimuth and Elevation [degrees],
@@ -287,7 +287,7 @@ class Pointer_CLI(object):
             pointer.set(coords, v1, v2)
         else:
             pointer.set('AzEl', 0., 0.)
-    set.cli_options = ((), ('-e', '-a', '-r', '-d', '-s'))
+    set.cli_options = (('-s'), ('-e', '-a', '-r', '-d'))
     
     def getSpeed(self, pointer):
         """Get actual pointer Azimuth and Elevation axes speed [degrees/s]
@@ -298,7 +298,7 @@ class Pointer_CLI(object):
         self.tell("\nAzimuth Speed: %.2f°/s, " \
                   "Elevation Speed: %.2f°/s" \
                   % (azimuth, elevation))
-    getSpeed.cli_options = ((), ('-s'))
+    getSpeed.cli_options = (('-s'), ())
 
     def setSpeed(self, pointer, azimuth=1., elevation=1.):
         """Set pointer speed to the given Azimuth and Elevation speeds [degrees/s]
@@ -307,7 +307,7 @@ class Pointer_CLI(object):
             pointer -e 2 setSpeed
         """
         pointer.setSpeed(azimuth, elevation)
-    setSpeed.cli_options = ((), ('-e', '-a', '-s'))
+    setSpeed.cli_options = (('-s'), ('-e', '-a'))
 
     def getLatLon(self, pointer):
         """Get actual pointer Latitude and Longitude settings [degrees]
@@ -318,7 +318,7 @@ class Pointer_CLI(object):
         self.tell("\nLatitude: %.4f°, " \
                   "Longitude: %.4f°" \
                   % (azimuth, elevation))
-    getLatLon.cli_options = ((), ('-s'))
+    getLatLon.cli_options = (('-s'), ())
 
     def setLatLon(self, pointer, lat=0., lon=0.):
         """Set pointer to the given Latitude and Longitude degrees]
@@ -326,7 +326,7 @@ class Pointer_CLI(object):
             pointer --lat -41 --lon -72 setLatLon
         """
         pointer.setLatLon(lat, lon)
-    setLatLon.cli_options = (('--lat', '--lon'), ('-s'))
+    setLatLon.cli_options = (('-s', '--lat', '--lon'), ())
 
     def ledOn(self, pointer):
         """Turns the "live zero" led on
@@ -334,7 +334,7 @@ class Pointer_CLI(object):
             pointer -s pi ledOn
         """
         pointer.ledOn()
-    ledOn.cli_options = ((), ('-s'))
+    ledOn.cli_options = (('-s'), ())
 
     def ledOff(self, pointer):
         """Turns the "live zero" led off
@@ -342,7 +342,7 @@ class Pointer_CLI(object):
             pointer -s pi ledOff
         """
         pointer.ledOff()
-    ledOff.cli_options = ((), ('-s'))
+    ledOff.cli_options = (('-s'), ())
 
     def abort(self, pointer):
         """Abort currently executing command
@@ -350,7 +350,7 @@ class Pointer_CLI(object):
             pointer -s raspberrypi abort
         """
         pointer.abort()
-    abort.cli_options = ((), ('-s'))
+    abort.cli_options = (('-s'), ())
         
     commands = {'home': home,
                 'move': move,
