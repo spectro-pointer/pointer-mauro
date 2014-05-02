@@ -103,11 +103,13 @@ class MainWindow(wx.Frame):
 #====================================================================================================================================
 # Panel para la imagen de la camara
 class showCapture(wx.Panel):
-    def __init__(self, parent, capture, base, fps=20):
+    def __init__(self, parent, capture, base, pointer, fps=20):
         wx.Panel.__init__(self, parent.panel, pos=((APP_SIZE_X-FRAME_SIZE_X)/2, 0), size=(FRAME_SIZE_X, FRAME_SIZE_Y))
 
         self.capture = capture
         self.base=base
+        
+        self.pointer=pointer
         
         ret, frame = self.capture.read()
         height, width = frame.shape[:2]
@@ -162,6 +164,8 @@ class showCapture(wx.Panel):
         print "Movimiento Relativo (PAN TILT): ", pos_pan, pos_tilt
         
         # Seteo coordenadas a puntero
+        self.pointer.move('AzEl', pos_pan, pos_tilt)
+
         self.base.setPointer('pan', pos_pan)
         self.base.setPointer('tilt', pos_tilt)
         
@@ -191,6 +195,7 @@ class showCommands(wx.Panel):
 
 #====================================================================================================================================
 # "main"
+import pointer_cli_27 as pointer_cli
 
 # Tomo imagen de la webcam
 capture = cv2.VideoCapture(0)
@@ -198,11 +203,16 @@ capture = cv2.VideoCapture(0)
 # Tomo instancia a una estructura de datos de la base y la inicializo
 base = dataBase()
 
+# Pointer server hostname
+server_host = 'localhost'
+
+# Pointer client instance
+pointer = pointer_cli.Pointer_CLI()._getPointer(server_host)
 
 # Inicio
 app = wx.App(False)
 mainwin = MainWindow(None, "Operacion de Espectroscopio - IFA", APP_SIZE_X, APP_SIZE_Y, capture, base)
-camara = showCapture(mainwin, capture, base)
+camara = showCapture(mainwin, capture, base, pointer)
 botones = showCommands(mainwin, base)
 mainwin.Show()
 app.MainLoop()
