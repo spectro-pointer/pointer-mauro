@@ -10,8 +10,10 @@ from mainwindow import Ui_MainWindow as gui
 
 import cv2
 import numpy as np
+import pointer_cli_27 as pointer_cli
 
-POINTER_SERVER='pi'
+# Pointer server hostname
+server_host = 'pi'
 
 class Video():
     def __init__(self, capture):
@@ -57,10 +59,13 @@ class MainWindow(QMainWindow, gui):
         self.setupUi(self)
 
 #        self.setWindowIcon(QIcon(QPixmap(":/icons/icons/pointer.png")))
+        
+        # Pointer client instance
+        self.pointer = pointer_cli.Pointer_CLI()._getPointer(server_host)
 
         # Video capture
         fps=25
-        CAPTURE_TIMER_TIME = 1./fps*1000. # [ms]
+        captureTime = 1./fps*1000. # [ms]
 #        self.vcap = cv2.VideoCapture(0) # webcam
         self.vcap = cv2.VideoCapture()  # generic
 
@@ -68,7 +73,7 @@ class MainWindow(QMainWindow, gui):
             it may be an address of an r stream, 
             e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg"
         """
-        videoStreamAddress = 'rtsp://' + POINTER_SERVER + ':8554/'
+        videoStreamAddress = 'rtsp://' + server_host + ':8554/'
 
         """"open the video stream and make sure it's opened """
         if not self.vcap.open(videoStreamAddress):
@@ -98,7 +103,7 @@ class MainWindow(QMainWindow, gui):
         self.connect(self.capture_timer, SIGNAL("timeout()"), self.OnCaptureTimeout)
 
         #Start timers
-        self.capture_timer.start(CAPTURE_TIMER_TIME)
+        self.capture_timer.start(captureTime)
         
 #        desktop = QApplication.desktop();
 #        self.screen_width = desktop.width();
@@ -111,16 +116,49 @@ class MainWindow(QMainWindow, gui):
         self.update()
 
     def OnPushButtonUpPressed(self):
-        QMessageBox.warning(self, "Warning", "<strong>Up</strong> pressed.")
+#        QMessageBox.warning(self, "Warning", "<strong>Up</strong> pressed.")
+        steps = float(self.plainTextSteps.toPlainText())
+        if self.radioButtonArcmins.isChecked():
+            steps /= 60.
+        elif self.radioButtonArcsecs.isChecked():
+            steps /= 3600.
+        if self.radioButtonSteps.isChecked():
+            self.pointer.move('X', steps)
+        else:
+            self.pointer.move('AzEl', 0, steps)
 
     def OnPushButtonDownPressed(self):
-        QMessageBox.warning(self, "Warning", "<strong>Down</strong> pressed.")
+        steps = float(self.plainTextSteps.toPlainText())
+        if self.radioButtonArcmins.isChecked():
+            steps /= 60.
+        elif self.radioButtonArcsecs.isChecked():
+            steps /= 3600.
+        if self.radioButtonSteps.isChecked():
+            self.pointer.move('X', -steps)
+        else:
+            self.pointer.move('AzEl', 0, -steps)
 
     def OnPushButtonRightPressed(self):
-        QMessageBox.warning(self, "Warning", "<strong>Right</strong> pressed.")
+        steps = float(self.plainTextSteps.toPlainText())
+        if self.radioButtonArcmins.isChecked():
+            steps /= 60.
+        elif self.radioButtonArcsecs.isChecked():
+            steps /= 3600.
+        if self.radioButtonSteps.isChecked():
+            self.pointer.move('Z', steps)
+        else:
+            self.pointer.move('AzEl', steps, 0)
 
     def OnPushButtonLeftPressed(self):
-        QMessageBox.warning(self, "Warning", "<strong>Left</strong> pressed.")
+        steps = float(self.plainTextSteps.toPlainText())
+        if self.radioButtonArcmins.isChecked():
+            steps /= 60.
+        elif self.radioButtonArcsecs.isChecked():
+            steps /= 3600.
+        if self.radioButtonSteps.isChecked():
+            self.pointer.move('Z', -steps)
+        else:
+            self.pointer.move('AzEl', -steps, 0)
         
     def OnCaptureTimeout(self):
         try:
