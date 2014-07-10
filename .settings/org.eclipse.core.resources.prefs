@@ -1,3 +1,5 @@
-#Tue Sep 17 06:04:58 ART 2013
+#Sun Jul 06 17:54:57 ART 2014
 eclipse.preferences.version=1
 encoding//gps/gps.py=utf-8
+encoding//gui/pointer/mainwindow.py=utf-8
+encoding/servocmd.py=cp1252
