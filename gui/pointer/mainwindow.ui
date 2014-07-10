@@ -43,7 +43,7 @@
    <widget class="QPushButton" name="pushButtonLeft">
     <property name="geometry">
      <rect>
-      <x>440</x>
+      <x>430</x>
       <y>450</y>
       <width>90</width>
       <height>27</height>
@@ -56,7 +56,7 @@
    <widget class="QPushButton" name="pushButtonRight">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>630</x>
       <y>450</y>
       <width>90</width>
       <height>27</height>
@@ -215,12 +215,26 @@
      </widget>
     </widget>
    </widget>
+   <widget class="QPushButton" name="pushButtonAbort">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>450</y>
+      <width>90</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Stop</string>
+    </property>
+   </widget>
    <zorder>pushButtonUp</zorder>
    <zorder>pushButtonDown</zorder>
    <zorder>pushButtonLeft</zorder>
    <zorder>pushButtonRight</zorder>
    <zorder>frame</zorder>
    <zorder>graphicsView</zorder>
+   <zorder>pushButtonAbort</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

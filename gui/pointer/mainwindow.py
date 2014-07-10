@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Thu Jul 10 15:51:48 2014
+# Created: Thu Jul 10 15:59:39 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,10 +27,10 @@ class Ui_MainWindow(object):
         self.pushButtonDown.setGeometry(QtCore.QRect(530, 480, 90, 27))
         self.pushButtonDown.setObjectName(_fromUtf8("pushButtonDown"))
         self.pushButtonLeft = QtGui.QPushButton(self.centralWidget)
-        self.pushButtonLeft.setGeometry(QtCore.QRect(440, 450, 90, 27))
+        self.pushButtonLeft.setGeometry(QtCore.QRect(430, 450, 90, 27))
         self.pushButtonLeft.setObjectName(_fromUtf8("pushButtonLeft"))
         self.pushButtonRight = QtGui.QPushButton(self.centralWidget)
-        self.pushButtonRight.setGeometry(QtCore.QRect(620, 450, 90, 27))
+        self.pushButtonRight.setGeometry(QtCore.QRect(630, 450, 90, 27))
         self.pushButtonRight.setObjectName(_fromUtf8("pushButtonRight"))
         self.graphicsView = QtGui.QGraphicsView(self.centralWidget)
         self.graphicsView.setGeometry(QtCore.QRect(10, -10, 720, 405))
@@ -74,6 +74,9 @@ class Ui_MainWindow(object):
         self.plainTextSteps.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.plainTextSteps.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.plainTextSteps.setObjectName(_fromUtf8("plainTextSteps"))
+        self.pushButtonAbort = QtGui.QPushButton(self.centralWidget)
+        self.pushButtonAbort.setGeometry(QtCore.QRect(530, 450, 90, 27))
+        self.pushButtonAbort.setObjectName(_fromUtf8("pushButtonAbort"))
         MainWindow.setCentralWidget(self.centralWidget)
         self.menuBar = QtGui.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 739, 24))
@@ -101,4 +104,5 @@ class Ui_MainWindow(object):
         self.radioButtonArcmins.setText(QtGui.QApplication.translate("MainWindow", "arcmins", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButtonSteps.setText(QtGui.QApplication.translate("MainWindow", "steps", None, QtGui.QApplication.UnicodeUTF8))
         self.plainTextSteps.setPlainText(QtGui.QApplication.translate("MainWindow", "1", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButtonAbort.setText(QtGui.QApplication.translate("MainWindow", "Stop", None, QtGui.QApplication.UnicodeUTF8))
 

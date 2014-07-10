@@ -99,6 +99,7 @@ class MainWindow(QMainWindow, gui):
         self.connect(self.pushButtonDown, SIGNAL("pressed()"), self.OnPushButtonDownPressed)
         self.connect(self.pushButtonRight, SIGNAL("pressed()"), self.OnPushButtonRightPressed)
         self.connect(self.pushButtonLeft, SIGNAL("pressed()"), self.OnPushButtonLeftPressed)
+        self.connect(self.pushButtonAbort, SIGNAL("pressed()"), self.OnPushButtonAbortPressed)
         
         self.connect(self.capture_timer, SIGNAL("timeout()"), self.OnCaptureTimeout)
 
@@ -159,6 +160,9 @@ class MainWindow(QMainWindow, gui):
             self.pointer.move('Z', -steps)
         else:
             self.pointer.move('AzEl', -steps, 0)
+            
+    def OnPushButtonAbortPressed(self):
+        self.pointer.abort()
         
     def OnCaptureTimeout(self):
         try:
