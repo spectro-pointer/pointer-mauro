@@ -69,42 +69,40 @@ class MainWindow(QMainWindow, gui):
         self.vcap = cv2.VideoCapture()  # generic
 
         """
-            it may be an address of an r stream, 
+            Video stream address: It may be an address of an mpeg stream, 
             e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg"
         """
-#        videoStreamAddress = 0 # webcam
-        videoStreamAddress = 'rtsp://' + server_host + ':8554/'
+        videoStreamAddress = 0 # webcam
+#        videoStreamAddress = 'rtsp://' + server_host + ':8554/'
 
-        """"open the video stream and make sure it's opened """
+        """" Open the video stream, and make sure it's opened """
         if not self.vcap.open(videoStreamAddress):
             print "Error opening video stream or file"
             sys.exit(-1);
+        
         self.video = Video(self.vcap)
 
         # Graphics scene
-        self.videoFrame = QPixmap()
-
         self.graphicsScene = QGraphicsScene()
-        
+        self.videoFrame = QPixmap()
         self.pixmapItem = self.graphicsScene.addPixmap(self.videoFrame)
         
         # Crosshair
         self.red = QColor()
         self.red.setRedF(1)
-        self.white = QColor()
-        self.white.setRgb(255, 255, 255)
+        self.green = QColor()
+        self.green.setGreenF(1)
+#        self.white = QColor()
+#        self.white.setRgb(255, 255, 255)
 
-        pen = QPen()
-        pen.setColor(self.red)
         self.x=0
         self.y=0
         self.ellipse=None
         self.line1=None
         self.line2=None
-        self.crosshair()
+#        self.crosshair()
         
-        self.graphicsView.setScene(self.graphicsScene)
-        
+        self.graphicsView.setScene(self.graphicsScene)       
         
         #Create timers
         self.captureTimer = QTimer()
@@ -119,7 +117,6 @@ class MainWindow(QMainWindow, gui):
         self.connect(self.captureTimer, SIGNAL("timeout()"), self.OnCaptureTimeout)
         
         self.connect(self.graphicsScene, SIGNAL("changed()"), self.OnSceneChanged)
-        self.connect(self.graphicsView, SIGNAL("changed()"), self.OnSceneChanged)
 
         #Start timers
         self.captureTimer.start(captureTime)
