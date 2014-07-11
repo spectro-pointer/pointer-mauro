@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Thu Jul 10 15:59:39 2014
+# Created: Fri Jul 11 08:20:33 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -21,26 +21,26 @@ class Ui_MainWindow(object):
         self.centralWidget = QtGui.QWidget(MainWindow)
         self.centralWidget.setObjectName(_fromUtf8("centralWidget"))
         self.pushButtonUp = QtGui.QPushButton(self.centralWidget)
-        self.pushButtonUp.setGeometry(QtCore.QRect(530, 420, 90, 27))
+        self.pushButtonUp.setGeometry(QtCore.QRect(520, 520, 90, 27))
         self.pushButtonUp.setObjectName(_fromUtf8("pushButtonUp"))
         self.pushButtonDown = QtGui.QPushButton(self.centralWidget)
-        self.pushButtonDown.setGeometry(QtCore.QRect(530, 480, 90, 27))
+        self.pushButtonDown.setGeometry(QtCore.QRect(520, 580, 90, 27))
         self.pushButtonDown.setObjectName(_fromUtf8("pushButtonDown"))
         self.pushButtonLeft = QtGui.QPushButton(self.centralWidget)
-        self.pushButtonLeft.setGeometry(QtCore.QRect(430, 450, 90, 27))
+        self.pushButtonLeft.setGeometry(QtCore.QRect(430, 550, 90, 27))
         self.pushButtonLeft.setObjectName(_fromUtf8("pushButtonLeft"))
         self.pushButtonRight = QtGui.QPushButton(self.centralWidget)
-        self.pushButtonRight.setGeometry(QtCore.QRect(630, 450, 90, 27))
+        self.pushButtonRight.setGeometry(QtCore.QRect(610, 550, 90, 27))
         self.pushButtonRight.setObjectName(_fromUtf8("pushButtonRight"))
         self.graphicsView = QtGui.QGraphicsView(self.centralWidget)
-        self.graphicsView.setGeometry(QtCore.QRect(10, -10, 720, 405))
-        self.graphicsView.setMinimumSize(QtCore.QSize(720, 405))
+        self.graphicsView.setGeometry(QtCore.QRect(10, -10, 720, 490))
+        self.graphicsView.setMinimumSize(QtCore.QSize(720, 490))
         self.graphicsView.setMouseTracking(False)
         self.graphicsView.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.graphicsView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.graphicsView.setObjectName(_fromUtf8("graphicsView"))
         self.frame = QtGui.QFrame(self.centralWidget)
-        self.frame.setGeometry(QtCore.QRect(410, 520, 321, 111))
+        self.frame.setGeometry(QtCore.QRect(60, 510, 321, 111))
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtGui.QFrame.Raised)
         self.frame.setObjectName(_fromUtf8("frame"))
@@ -75,7 +75,7 @@ class Ui_MainWindow(object):
         self.plainTextSteps.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.plainTextSteps.setObjectName(_fromUtf8("plainTextSteps"))
         self.pushButtonAbort = QtGui.QPushButton(self.centralWidget)
-        self.pushButtonAbort.setGeometry(QtCore.QRect(530, 450, 90, 27))
+        self.pushButtonAbort.setGeometry(QtCore.QRect(520, 550, 90, 27))
         self.pushButtonAbort.setObjectName(_fromUtf8("pushButtonAbort"))
         MainWindow.setCentralWidget(self.centralWidget)
         self.menuBar = QtGui.QMenuBar(MainWindow)

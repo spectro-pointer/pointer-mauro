@@ -51,7 +51,7 @@ class Video():
 class MainWindow(QMainWindow, gui):
     
     # Pointer GUI
-    POINTERGUIVERSION = "0.0.1"
+    POINTERGUIVERSION = "0.0.2"
 
     def __init__(self, parent=None):
 
@@ -66,13 +66,13 @@ class MainWindow(QMainWindow, gui):
         # Video capture
         fps=25
         captureTime = 1./fps*1000. # [ms]
-#        self.vcap = cv2.VideoCapture(0) # webcam
         self.vcap = cv2.VideoCapture()  # generic
 
         """
             it may be an address of an r stream, 
             e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg"
         """
+#        videoStreamAddress = 0 # webcam
         videoStreamAddress = 'rtsp://' + server_host + ':8554/'
 
         """"open the video stream and make sure it's opened """
@@ -85,14 +85,29 @@ class MainWindow(QMainWindow, gui):
         self.videoFrame = QPixmap()
 
         self.graphicsScene = QGraphicsScene()
-#        self.graphicsScene.addText("Hello, world!")
         
         self.pixmapItem = self.graphicsScene.addPixmap(self.videoFrame)
+        
+        # Crosshair
+        self.red = QColor()
+        self.red.setRedF(1)
+        self.white = QColor()
+        self.white.setRgb(255, 255, 255)
 
+        pen = QPen()
+        pen.setColor(self.red)
+        self.x=0
+        self.y=0
+        self.ellipse=None
+        self.line1=None
+        self.line2=None
+        self.crosshair()
+        
         self.graphicsView.setScene(self.graphicsScene)
         
+        
         #Create timers
-        self.capture_timer = QTimer()
+        self.captureTimer = QTimer()
 
         #Connects
         self.connect(self.pushButtonUp, SIGNAL("pressed()"), self.OnPushButtonUpPressed)
@@ -101,10 +116,13 @@ class MainWindow(QMainWindow, gui):
         self.connect(self.pushButtonLeft, SIGNAL("pressed()"), self.OnPushButtonLeftPressed)
         self.connect(self.pushButtonAbort, SIGNAL("pressed()"), self.OnPushButtonAbortPressed)
         
-        self.connect(self.capture_timer, SIGNAL("timeout()"), self.OnCaptureTimeout)
+        self.connect(self.captureTimer, SIGNAL("timeout()"), self.OnCaptureTimeout)
+        
+        self.connect(self.graphicsScene, SIGNAL("changed()"), self.OnSceneChanged)
+        self.connect(self.graphicsView, SIGNAL("changed()"), self.OnSceneChanged)
 
         #Start timers
-        self.capture_timer.start(captureTime)
+        self.captureTimer.start(captureTime)
         
 #        desktop = QApplication.desktop();
 #        self.screen_width = desktop.width();
@@ -164,6 +182,30 @@ class MainWindow(QMainWindow, gui):
     def OnPushButtonAbortPressed(self):
         self.pointer.abort()
         
+    def crosshair(self):
+        r=8 # crosshair radius [pixels]
+        c=2 # cross excess length [pixels]
+        pen = QPen()
+        pen.setColor(self.red) # crosshair color
+        
+        if self.ellipse:
+            self.graphicsScene.removeItem(self.ellipse)
+        if self.line1:
+            self.graphicsScene.removeItem(self.line1)
+        if self.line2:
+            self.graphicsScene.removeItem(self.line2)
+        
+        self.x = self.graphicsScene.width() / 2
+        self.y = self.graphicsScene.height() / 2
+        self.ellipse=self.graphicsScene.addEllipse(self.x, self.y, r*2, r*2, pen)
+        self.line1=self.graphicsScene.addLine(QLineF(self.x-c, self.y+r, self.x+2*r+c, self.y+r), pen)
+        self.line2=self.graphicsScene.addLine(QLineF(self.x+r, self.y-c, self.x+r, self.y+2*r+c), pen)
+        self.ellipse.setZValue(1)
+        self.line1.setZValue(1)
+        self.line2.setZValue(1)
+#        self.graphicsView.show()
+
+
     def OnCaptureTimeout(self):
         try:
             self.video.captureNextFrame()
@@ -171,11 +213,17 @@ class MainWindow(QMainWindow, gui):
 #            self.videoFrame.setScaledContents(True)
             self.graphicsScene.removeItem(self.pixmapItem)
             self.pixmapItem=self.graphicsScene.addPixmap(self.videoFrame)
+            self.crosshair()
+#            self.graphicsScene.emit(SIGNAL("changed()"))
 #            self.graphicsView.show()
 #            self.update()
-        except TypeError:
-            print "No frame"
-
+#        except TypeError:
+        except Exception as e:
+            print "OnCaptureTimeout() exception:", e
+    
+    def OnSceneChanged(self, rect=None):
+        print 'changed:', rect
+        
 if __name__ == "__main__":
     QApplication.setApplicationName("POINTERGUI");
     app = QApplication(sys.argv)

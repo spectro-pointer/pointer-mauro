@@ -17,8 +17,8 @@
    <widget class="QPushButton" name="pushButtonUp">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>420</y>
+      <x>520</x>
+      <y>520</y>
       <width>90</width>
       <height>27</height>
      </rect>
@@ -30,8 +30,8 @@
    <widget class="QPushButton" name="pushButtonDown">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>480</y>
+      <x>520</x>
+      <y>580</y>
       <width>90</width>
       <height>27</height>
      </rect>
@@ -44,7 +44,7 @@
     <property name="geometry">
      <rect>
       <x>430</x>
-      <y>450</y>
+      <y>550</y>
       <width>90</width>
       <height>27</height>
      </rect>
@@ -56,8 +56,8 @@
    <widget class="QPushButton" name="pushButtonRight">
     <property name="geometry">
      <rect>
-      <x>630</x>
-      <y>450</y>
+      <x>610</x>
+      <y>550</y>
       <width>90</width>
       <height>27</height>
      </rect>
@@ -72,13 +72,13 @@
       <x>10</x>
       <y>-10</y>
       <width>720</width>
-      <height>405</height>
+      <height>490</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
       <width>720</width>
-      <height>405</height>
+      <height>490</height>
      </size>
     </property>
     <property name="mouseTracking">
@@ -94,8 +94,8 @@
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>410</x>
-      <y>520</y>
+      <x>60</x>
+      <y>510</y>
       <width>321</width>
       <height>111</height>
      </rect>
@@ -218,8 +218,8 @@
    <widget class="QPushButton" name="pushButtonAbort">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>450</y>
+      <x>520</x>
+      <y>550</y>
       <width>90</width>
       <height>27</height>
      </rect>
@@ -228,13 +228,14 @@
      <string>Stop</string>
     </property>
    </widget>
-   <zorder>pushButtonUp</zorder>
    <zorder>pushButtonDown</zorder>
+   <zorder>pushButtonAbort</zorder>
    <zorder>pushButtonLeft</zorder>
+   <zorder>graphicsView</zorder>
+   <zorder>pushButtonUp</zorder>
    <zorder>pushButtonRight</zorder>
    <zorder>frame</zorder>
-   <zorder>graphicsView</zorder>
-   <zorder>pushButtonAbort</zorder>
+   <zorder>groupBox</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
