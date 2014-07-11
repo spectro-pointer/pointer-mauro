@@ -5,6 +5,8 @@ import sys
 from PyQt4.QtCore import *
 #from PyQt4 import QtGui, QtCore, Qt
 from PyQt4.QtGui import *
+import PyQt4.Qt
+
 from mainwindow import Ui_MainWindow as gui
 #import gc
 
@@ -46,12 +48,74 @@ class Video():
         except Exception as e:
             print 'convertFrame() exception:', e
             return None
+        
+class GraphicsPixmapItem(QGraphicsPixmapItem):
+    def __init__(self, main=None):
+        super(QGraphicsPixmapItem, self).__init__()
+        self.main = main
 
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            centerx = self.pixmap().width()/2
+            centery = self.pixmap().height()/2
+            point = event.pos()
+            x = point.x()
+            y = point.y()
+            print 'X:', x
+            print 'Y:', y
+            if self.main:
+                self.main.target.draw(x, y)
 
+class Crosshair():
+    """ A simple crosshair class """
+    def __init__(self, graphicsScene, color=Qt.red, z=1):
+        self.r=8 # crosshair radius [pixels]
+        self.c=2 # cross excess length [pixels]
+        self.z = z       
+        self.gs = graphicsScene
+        self.x = 0
+        self.y = 0
+        self.pen = QPen()
+        self.pen.setColor(color)
+                
+        self.ellipse=None
+        self.line1=None
+        self.line2=None
+  
+    def stack(self, z):
+        self.z = z
+
+    def botton(self):
+        self.z = 0
+    
+    def top(self):
+        self.z=1
+
+    def draw(self, x=None, y=None):
+        if x != None:
+            self.x = x-self.r
+        if y != None:
+            self.y = y-self.r
+
+        if self.ellipse:
+            self.gs.removeItem(self.ellipse)
+            self.gs.removeItem(self.line1)
+            self.gs.removeItem(self.line2)
+        r=self.r
+        c=self.c
+        x=self.x
+        y=self.y
+        self.ellipse=self.gs.addEllipse(x, y, r*2, r*2, self.pen)
+        self.line1=self.gs.addLine(QLineF(x-c, y+r, x+2*r+c, y+r), self.pen)
+        self.line2=self.gs.addLine(QLineF(x+r, y-c, x+r, y+2*r+c), self.pen)      
+        self.ellipse.setZValue(self.z)
+        self.line1.setZValue(self.z)
+        self.line2.setZValue(self.z)
+    
 class MainWindow(QMainWindow, gui):
     
     # Pointer GUI
-    POINTERGUIVERSION = "0.0.2"
+    POINTERGUIVERSION = "0.0.3"
 
     def __init__(self, parent=None):
 
@@ -85,24 +149,16 @@ class MainWindow(QMainWindow, gui):
         # Graphics scene
         self.graphicsScene = QGraphicsScene()
         self.videoFrame = QPixmap()
-        self.pixmapItem = self.graphicsScene.addPixmap(self.videoFrame)
+        self.pixmapItem = GraphicsPixmapItem(main=self)
         
-        # Crosshair
-        self.red = QColor()
-        self.red.setRedF(1)
-        self.green = QColor()
-        self.green.setGreenF(1)
-#        self.white = QColor()
-#        self.white.setRgb(255, 255, 255)
-
-        self.x=0
-        self.y=0
-        self.ellipse=None
-        self.line1=None
-        self.line2=None
-#        self.crosshair()
+        self.graphicsScene.addItem(self.pixmapItem)
+              
+        self.graphicsView.setScene(self.graphicsScene)
         
-        self.graphicsView.setScene(self.graphicsScene)       
+        self.crosshair = Crosshair(self.graphicsScene)   
+        
+        self.target = Crosshair(self.graphicsScene, Qt.green)
+        self.target.stack(0.9)
         
         #Create timers
         self.captureTimer = QTimer()
@@ -179,42 +235,17 @@ class MainWindow(QMainWindow, gui):
     def OnPushButtonAbortPressed(self):
         self.pointer.abort()
         
-    def crosshair(self):
-        r=8 # crosshair radius [pixels]
-        c=2 # cross excess length [pixels]
-        pen = QPen()
-        pen.setColor(self.red) # crosshair color
-        
-        if self.ellipse:
-            self.graphicsScene.removeItem(self.ellipse)
-        if self.line1:
-            self.graphicsScene.removeItem(self.line1)
-        if self.line2:
-            self.graphicsScene.removeItem(self.line2)
-        
-        self.x = self.graphicsScene.width() / 2
-        self.y = self.graphicsScene.height() / 2
-        self.ellipse=self.graphicsScene.addEllipse(self.x, self.y, r*2, r*2, pen)
-        self.line1=self.graphicsScene.addLine(QLineF(self.x-c, self.y+r, self.x+2*r+c, self.y+r), pen)
-        self.line2=self.graphicsScene.addLine(QLineF(self.x+r, self.y-c, self.x+r, self.y+2*r+c), pen)
-        self.ellipse.setZValue(1)
-        self.line1.setZValue(1)
-        self.line2.setZValue(1)
-#        self.graphicsView.show()
-
-
     def OnCaptureTimeout(self):
+        first = True
         try:
             self.video.captureNextFrame()
             self.videoFrame = self.video.convertFrame()
-#            self.videoFrame.setScaledContents(True)
-            self.graphicsScene.removeItem(self.pixmapItem)
-            self.pixmapItem=self.graphicsScene.addPixmap(self.videoFrame)
-            self.crosshair()
-#            self.graphicsScene.emit(SIGNAL("changed()"))
-#            self.graphicsView.show()
-#            self.update()
-#        except TypeError:
+            self.pixmapItem.setPixmap(self.videoFrame)
+            if first:
+                x = self.graphicsScene.width() / 2
+                y = self.graphicsScene.height() / 2
+                self.crosshair.draw(x, y)
+                first = False
         except Exception as e:
             print "OnCaptureTimeout() exception:", e
     
