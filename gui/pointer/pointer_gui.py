@@ -37,11 +37,11 @@ class Video():
             Converts frame to format suitable for QtGui
         """
         try:
-            height,width=self.currentFrame.shape[:2]
+            height, width=self.currentFrame.shape[:2]
             img=QImage(self.currentFrame,
-                              width,
-                              height,
-                              QImage.Format_RGB888)
+                       width,
+                       height,
+                       QImage.Format_RGB888)
             pixmap=QPixmap.fromImage(img)
 #            self.previousFrame = self.currentFrame
             return pixmap
@@ -61,10 +61,22 @@ class GraphicsPixmapItem(QGraphicsPixmapItem):
             point = event.pos()
             x = point.x()
             y = point.y()
-            print 'X:', x
-            print 'Y:', y
+            print 'X_a:', x
+            print 'Y_a:', y
             if self.main:
                 self.main.target.draw(x, y)
+
+                x -= self.main.frameSizeX/2
+                y -= self.main.frameSizeY/2
+                y *= -1
+                print 'X_r:', x
+                print 'Y_r:', y
+                pan  = x / float(self.main.frameSizeX) * self.main.cameraPan
+                tilt = y / float(self.main.frameSizeY) * self.main.cameraTilt
+                print 'Pan :', pan
+                print 'Tilt:', tilt
+                self.main.pointer.move('AzEl', pan, tilt)
+
 
 class Crosshair():
     """ A simple crosshair class """
@@ -139,6 +151,11 @@ class MainWindow(QMainWindow, gui):
         videoStreamAddress = 0 # webcam
 #        videoStreamAddress = 'rtsp://' + server_host + ':8554/'
 
+        self.cameraPan = 30. # [°]
+        self.cameraTilt= 20. # [°]
+        self.frameSizeX= 640 # [px]
+        self.frameSizeY= 480 # [px]
+
         """" Open the video stream, and make sure it's opened """
         if not self.vcap.open(videoStreamAddress):
             print "Error opening video stream or file"
@@ -172,7 +189,7 @@ class MainWindow(QMainWindow, gui):
         
         self.connect(self.captureTimer, SIGNAL("timeout()"), self.OnCaptureTimeout)
         
-        self.connect(self.graphicsScene, SIGNAL("changed()"), self.OnSceneChanged)
+#        self.connect(self.graphicsScene, SIGNAL("changed()"), self.OnSceneChanged)
 
         #Start timers
         self.captureTimer.start(captureTime)
@@ -189,7 +206,7 @@ class MainWindow(QMainWindow, gui):
 
     def OnPushButtonUpPressed(self):
 #        QMessageBox.warning(self, "Warning", "<strong>Up</strong> pressed.")
-        steps = float(self.plainTextSteps.toPlainText())
+        steps = float(self.lineEditSteps.text())
         if self.radioButtonArcmins.isChecked():
             steps /= 60.
         elif self.radioButtonArcsecs.isChecked():
@@ -200,7 +217,7 @@ class MainWindow(QMainWindow, gui):
             self.pointer.move('AzEl', 0, steps)
 
     def OnPushButtonDownPressed(self):
-        steps = float(self.plainTextSteps.toPlainText())
+        steps = float(self.lineEditSteps.text())
         if self.radioButtonArcmins.isChecked():
             steps /= 60.
         elif self.radioButtonArcsecs.isChecked():
@@ -211,7 +228,7 @@ class MainWindow(QMainWindow, gui):
             self.pointer.move('AzEl', 0, -steps)
 
     def OnPushButtonRightPressed(self):
-        steps = float(self.plainTextSteps.toPlainText())
+        steps = float(self.lineEditSteps.text())
         if self.radioButtonArcmins.isChecked():
             steps /= 60.
         elif self.radioButtonArcsecs.isChecked():
@@ -222,7 +239,7 @@ class MainWindow(QMainWindow, gui):
             self.pointer.move('AzEl', steps, 0)
 
     def OnPushButtonLeftPressed(self):
-        steps = float(self.plainTextSteps.toPlainText())
+        steps = float(self.lineEditSteps.text())
         if self.radioButtonArcmins.isChecked():
             steps /= 60.
         elif self.radioButtonArcsecs.isChecked():
@@ -240,6 +257,9 @@ class MainWindow(QMainWindow, gui):
         try:
             self.video.captureNextFrame()
             self.videoFrame = self.video.convertFrame()
+            self.frameSizeX = self.videoFrame.width()
+            self.frameSizeY = self.videoFrame.height()
+            self.graphicsScene.setSceneRect(QRectF(0, 0, self.frameSizeX, self.frameSizeY))
             self.pixmapItem.setPixmap(self.videoFrame)
             if first:
                 x = self.graphicsScene.width() / 2
@@ -249,8 +269,8 @@ class MainWindow(QMainWindow, gui):
         except Exception as e:
             print "OnCaptureTimeout() exception:", e
     
-    def OnSceneChanged(self, rect=None):
-        print 'changed:', rect
+#    def OnSceneChanged(self, rect=None):
+#        print 'changed:', rect
         
 if __name__ == "__main__":
     QApplication.setApplicationName("POINTERGUI");
