@@ -28,12 +28,16 @@ server_host = 'pi'
 class Video():
     """
         Video class
-            - Webcam vs. Picamera vs. stream abstraction
-            - QtGui format support
+            - Webcam/Picamera/Video stream abstraction
+            - QtGui output format support
     """
     def __init__(self, stream):
         self.piCamera =False
         if stream == 'picamera':
+            self.capture = picamera.PiCamera()
+#            self.capture.resolution = (1024, 576)
+            self.capture.hflip = True
+            self.capture.vflip = True
             self.piCamera = True
         else:
             self.capture = cv2.VideoCapture()
@@ -66,12 +70,11 @@ class Video():
         # http://picamera.readthedocs.org/en/release-1.0/recipes1.html#capturing-to-an-opencv-object
         # Capture a frame from the camera.
         data = io.BytesIO()
-        with picamera.PiCamera() as camera:
-            try:
-                camera.capture(data, format='jpeg')
-            except Exception as e:
-                print >>sys.stderr, 'Exception: readPiCamera():', e
-                return False, None
+        try:
+            self.capture.capture(data, format='jpeg', use_video_port=True)
+        except Exception as e:
+            print >>sys.stderr, 'Exception: readPiCamera():', e
+            return False, None
         data = np.fromstring(data.getvalue(), dtype = np.uint8)
         # Decode the image data and return an OpenCV image.
         readFrame = cv2.imdecode(data, 1)
@@ -204,8 +207,8 @@ class MainWindow(QMainWindow, gui):
         elif videoStream == 'picamera':
             self.cameraPan = 40.5 # [°]
             self.cameraTilt= 22.5 # [°]
-            self.frameSizeX= 1920 # [px]
-            self.frameSizeY= 1080 # [px]
+            self.frameSizeX= 720 # [px]
+            self.frameSizeY= 480 # [px]
             self.cameraSizeX= 1920 # [px]
             self.cameraSizeY= 1080 # [px]
         else: # rtsp+picamera
@@ -314,6 +317,8 @@ class MainWindow(QMainWindow, gui):
             self.videoFrame = self.video.convertFrame()
             self.frameSizeX = self.videoFrame.width()
             self.frameSizeY = self.videoFrame.height()
+#            print 'frame size X:', self.frameSizeX
+#            print 'frame size Y:', self.frameSizeY
             self.graphicsScene.setSceneRect(QRectF(0, 0, self.frameSizeX, self.frameSizeY))
             self.pixmapItem.setPixmap(self.videoFrame)
             if first:
