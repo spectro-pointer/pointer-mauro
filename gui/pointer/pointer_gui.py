@@ -18,19 +18,56 @@ import pointer_cli_27 as pointer_cli
 server_host = 'pi'
 
 class Video():
-    def __init__(self, capture):
-        self.capture = capture
+    """
+        Video class
+            - Webcam vs. Picamera vs. stream abstraction
+            - QtGui format support
+    """
+    def __init__(self, stream):
+        self.piCamera =False
+        if stream == 'picamera':
+            import io, picamera
+            self.piCamera = True
+            self.capture = picamera.PiCamera()
+        else:
+            self.capture = cv2.VideoCapture()
+            if not self.capture.open(stream):
+                print "Error opening video stream or device"
+                sys.exit(-1);
+
         self.currentFrame=np.array([])
 
     def captureNextFrame(self):
         """ 
             Capture frame, reverse RBG BGR, and return opencv image                                                                         
         """
-        ret, readFrame=self.capture.read()
-        if(ret==True):
-            self.currentFrame=cv2.cvtColor(readFrame, cv2.COLOR_BGR2RGB)
+        if self.piCamera:
+            self.currentFrame=self.readPicamera()
         else:
-            print 'No frame'
+            ret, readFrame=self.capture.read()
+            if(ret==True):
+                self.currentFrame=cv2.cvtColor(readFrame, cv2.COLOR_BGR2RGB)
+            else:
+                print 'No frame'
+            
+    def readPicamera(self):
+        """ 
+            Read a single frame from the camera and return the data as an OpenCV
+            image (which is a numpy array).
+        """
+        # This code is based on the picamera example at:
+        # http://picamera.readthedocs.org/en/release-1.0/recipes1.html#capturing-to-an-opencv-object
+        # Capture a frame from the camera.
+        data = io.BytesIO()
+        with self.capture as camera:
+            camera.capture(data, format='jpeg')
+        data = np.fromstring(data.getvalue(), dtype = np.uint8)
+        
+        # Decode the image data and return an OpenCV image.
+        readFrame = cv2.imdecode(data, 1)
+        
+#        return image[:, :, ::-1]
+        return cv2.cvtColor(readFrame, cv2.COLOR_BGR2RGB)
 
     def convertFrame(self):
         """
@@ -140,22 +177,29 @@ class MainWindow(QMainWindow, gui):
         # Video capture
         fps=25
         captureTime = 1./fps*1000. # [ms]
-        self.vcap = cv2.VideoCapture()  # generic
 
         """
             Video stream address: It may be an address of an mpeg stream, 
             e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg"
         """
-#        videoStreamAddress = 0 # webcam
-        videoStreamAddress = 'rtsp://' + server_host + ':8554/'
+        videoStream = 0 # Webcam
+#        videoStream = 'rtsp://' + server_host + ':8554/' # RTSP stream
+#        videoStream = 'picamera' # Raspberry pi camera
         
-        if videoStreamAddress == 0:
+        if videoStream == 0:
             self.cameraPan = 30. # [°]
             self.cameraTilt= 20. # [°]
             self.cameraSizeX= 640 # [px]
             self.cameraSizeY= 480 # [px]
             self.frameSizeX= 640 # [px]
             self.frameSizeY= 480 # [px]
+        elif videoStream == 'picamera':
+            self.cameraPan = 40.5 # [°]
+            self.cameraTilt= 22.5 # [°]
+            self.frameSizeX= 1920 # [px]
+            self.frameSizeY= 1080 # [px]
+            self.cameraSizeX= 1920 # [px]
+            self.cameraSizeY= 1080 # [px]
         else: # rtsp+picamera
             self.cameraPan = 40.5 # [°]
             self.cameraTilt= 22.5 # [°]
@@ -164,12 +208,8 @@ class MainWindow(QMainWindow, gui):
             self.cameraSizeX= 1920 # [px]
             self.cameraSizeY= 1080 # [px]
 
-        """" Open the video stream, and make sure it's opened """
-        if not self.vcap.open(videoStreamAddress):
-            print "Error opening video stream or file"
-            sys.exit(-1);
-        
-        self.video = Video(self.vcap)
+        # Open the video stream
+        self.video = Video(videoStream)
 
         # Graphics scene
         self.graphicsScene = QGraphicsScene()
