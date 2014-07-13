@@ -14,6 +14,14 @@ import cv2
 import numpy as np
 import pointer_cli_27 as pointer_cli
 
+# picamera stuff
+import io
+try:
+    import picamera
+except:
+    print >>sys.stderr, "Warning: picamera module not found"
+    pass
+
 # Pointer server hostname
 server_host = 'pi'
 
@@ -26,29 +34,28 @@ class Video():
     def __init__(self, stream):
         self.piCamera =False
         if stream == 'picamera':
-            import io, picamera
             self.piCamera = True
-            self.capture = picamera.PiCamera()
         else:
             self.capture = cv2.VideoCapture()
             if not self.capture.open(stream):
-                print "Error opening video stream or device"
+                print >>sys.stderr, "Error: video stream or device open failed"
                 sys.exit(-1);
-
         self.currentFrame=np.array([])
 
     def captureNextFrame(self):
         """ 
             Capture frame, reverse RBG BGR, and return opencv image                                                                         
         """
+        ret = False
+        readFrame = None
         if self.piCamera:
-            self.currentFrame=self.readPicamera()
+            ret, readFrame=self.readPicamera()
         else:
             ret, readFrame=self.capture.read()
-            if(ret==True):
-                self.currentFrame=cv2.cvtColor(readFrame, cv2.COLOR_BGR2RGB)
-            else:
-                print 'No frame'
+        if(ret):
+            self.currentFrame=cv2.cvtColor(readFrame, cv2.COLOR_BGR2RGB)
+        else:
+            print >>sys.stderr, 'Warning: no frame'
             
     def readPicamera(self):
         """ 
@@ -59,15 +66,16 @@ class Video():
         # http://picamera.readthedocs.org/en/release-1.0/recipes1.html#capturing-to-an-opencv-object
         # Capture a frame from the camera.
         data = io.BytesIO()
-        with self.capture as camera:
-            camera.capture(data, format='jpeg')
+        with picamera.PiCamera() as camera:
+            try:
+                camera.capture(data, format='jpeg')
+            except Exception as e:
+                print >>sys.stderr, 'Exception: readPiCamera():', e
+                return False, None
         data = np.fromstring(data.getvalue(), dtype = np.uint8)
-        
         # Decode the image data and return an OpenCV image.
         readFrame = cv2.imdecode(data, 1)
-        
-#        return image[:, :, ::-1]
-        return cv2.cvtColor(readFrame, cv2.COLOR_BGR2RGB)
+        return True, readFrame
 
     def convertFrame(self):
         """
@@ -83,7 +91,7 @@ class Video():
 #            self.previousFrame = self.currentFrame
             return pixmap
         except Exception as e:
-            print 'convertFrame() exception:', e
+            print >>sys.stderr, 'Exception: convertFrame():', e
             return None
         
 class GraphicsPixmapItem(QGraphicsPixmapItem):
@@ -182,9 +190,9 @@ class MainWindow(QMainWindow, gui):
             Video stream address: It may be an address of an mpeg stream, 
             e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg"
         """
-        videoStream = 0 # Webcam
+#        videoStream = 0 # Webcam
 #        videoStream = 'rtsp://' + server_host + ':8554/' # RTSP stream
-#        videoStream = 'picamera' # Raspberry pi camera
+        videoStream = 'picamera' # Raspberry pi camera
         
         if videoStream == 0:
             self.cameraPan = 30. # [°]
@@ -245,7 +253,6 @@ class MainWindow(QMainWindow, gui):
 #        desktop = QApplication.desktop();
 #        self.screen_width = desktop.width();
 #        self.screen_height = desktop.height();
-#        print "Your resolution: " + str(self.screen_width) + "x" + str(self.screen_height)
         
 #        self.events_mutex = QMutex()
 
@@ -315,11 +322,8 @@ class MainWindow(QMainWindow, gui):
                 self.crosshair.draw(x, y)
                 first = False
         except Exception as e:
-            print "OnCaptureTimeout() exception:", e
+            print >>sys.stderr, "Exception: OnCaptureTimeout():", e
     
-#    def OnSceneChanged(self, rect=None):
-#        print 'changed:', rect
-        
 if __name__ == "__main__":
     QApplication.setApplicationName("POINTERGUI");
     app = QApplication(sys.argv)
