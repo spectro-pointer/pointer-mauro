@@ -31,11 +31,12 @@ class Video():
             - Webcam/Picamera/Video stream abstraction
             - QtGui output format support
     """
-    def __init__(self, stream):
+    def __init__(self, stream, res=None):
         self.piCamera =False
         if stream == 'picamera':
             self.capture = picamera.PiCamera()
-#            self.capture.resolution = (1024, 576)
+            if res:
+                self.capture.resolution = res
             self.capture.hflip = True
             self.capture.vflip = True
             self.piCamera = True
@@ -118,8 +119,8 @@ class GraphicsPixmapItem(QGraphicsPixmapItem):
                 y *= -1
                 print 'X_r:', x
                 print 'Y_r:', y
-                pan  = x / float(self.main.cameraSizeX) * self.main.cameraPan
-                tilt = y / float(self.main.cameraSizeY) * self.main.cameraTilt
+                pan  = x / float(self.main.frameSizeX) * self.main.cameraPan
+                tilt = y / float(self.main.frameSizeY) * self.main.cameraTilt
                 print 'Pan :', pan
                 print 'Tilt:', tilt
                 self.main.pointer.move('AzEl', pan, tilt)
@@ -200,27 +201,21 @@ class MainWindow(QMainWindow, gui):
         if videoStream == 0:
             self.cameraPan = 30. # [°]
             self.cameraTilt= 20. # [°]
-            self.cameraSizeX= 640 # [px]
-            self.cameraSizeY= 480 # [px]
             self.frameSizeX= 640 # [px]
             self.frameSizeY= 480 # [px]
         elif videoStream == 'picamera':
             self.cameraPan = 40.5 # [°]
             self.cameraTilt= 22.5 # [°]
-            self.frameSizeX= 720 # [px]
-            self.frameSizeY= 480 # [px]
-            self.cameraSizeX= 1920 # [px]
-            self.cameraSizeY= 1080 # [px]
+            self.frameSizeX= 1080 # [px]
+            self.frameSizeY= 720 # [px]
         else: # rtsp+picamera
             self.cameraPan = 40.5 # [°]
             self.cameraTilt= 22.5 # [°]
             self.frameSizeX= 1024 # [px]
-            self.frameSizeY= 576 # [px]
-            self.cameraSizeX= 1920 # [px]
-            self.cameraSizeY= 1080 # [px]
+            self.frameSizeY= 576  # [px]
 
         # Open the video stream
-        self.video = Video(videoStream)
+        self.video = Video(videoStream, (self.frameSizeX, self.frameSizeY))
 
         # Graphics scene
         self.graphicsScene = QGraphicsScene()
