@@ -65,18 +65,16 @@ class GraphicsPixmapItem(QGraphicsPixmapItem):
             print 'Y_a:', y
             if self.main:
                 self.main.target.draw(x, y)
-
                 x -= self.main.frameSizeX/2
                 y -= self.main.frameSizeY/2
                 y *= -1
                 print 'X_r:', x
                 print 'Y_r:', y
-                pan  = x / float(self.main.frameSizeX) * self.main.cameraPan
-                tilt = y / float(self.main.frameSizeY) * self.main.cameraTilt
+                pan  = x / float(self.main.cameraSizeX) * self.main.cameraPan
+                tilt = y / float(self.main.cameraSizeY) * self.main.cameraTilt
                 print 'Pan :', pan
                 print 'Tilt:', tilt
                 self.main.pointer.move('AzEl', pan, tilt)
-
 
 class Crosshair():
     """ A simple crosshair class """
@@ -148,13 +146,23 @@ class MainWindow(QMainWindow, gui):
             Video stream address: It may be an address of an mpeg stream, 
             e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg"
         """
-        videoStreamAddress = 0 # webcam
-#        videoStreamAddress = 'rtsp://' + server_host + ':8554/'
-
-        self.cameraPan = 30. # [°]
-        self.cameraTilt= 20. # [°]
-        self.frameSizeX= 640 # [px]
-        self.frameSizeY= 480 # [px]
+#        videoStreamAddress = 0 # webcam
+        videoStreamAddress = 'rtsp://' + server_host + ':8554/'
+        
+        if videoStreamAddress == 0:
+            self.cameraPan = 30. # [°]
+            self.cameraTilt= 20. # [°]
+            self.cameraSizeX= 640 # [px]
+            self.cameraSizeY= 480 # [px]
+            self.frameSizeX= 640 # [px]
+            self.frameSizeY= 480 # [px]
+        else: # rtsp+picamera
+            self.cameraPan = 40.5 # [°]
+            self.cameraTilt= 22.5 # [°]
+            self.frameSizeX= 1024 # [px]
+            self.frameSizeY= 576 # [px]
+            self.cameraSizeX= 1920 # [px]
+            self.cameraSizeY= 1080 # [px]
 
         """" Open the video stream, and make sure it's opened """
         if not self.vcap.open(videoStreamAddress):
