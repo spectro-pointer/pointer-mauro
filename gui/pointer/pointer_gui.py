@@ -174,7 +174,7 @@ class Crosshair():
 class MainWindow(QMainWindow, gui):
     
     # Pointer GUI
-    POINTERGUIVERSION = "0.0.3"
+    POINTERGUIVERSION = "0.0.4"
 
     def __init__(self, parent=None):
 
@@ -194,9 +194,9 @@ class MainWindow(QMainWindow, gui):
             Video stream address: It may be an address of an mpeg stream, 
             e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg"
         """
-#        videoStream = 0 # Webcam
+        videoStream = 0 # Webcam
 #        videoStream = 'rtsp://' + server_host + ':8554/' # RTSP stream
-        videoStream = 'picamera' # Raspberry pi camera
+#        videoStream = 'picamera' # Raspberry pi camera
         
         if videoStream == 0:
             self.cameraPan = 30. # [°]
