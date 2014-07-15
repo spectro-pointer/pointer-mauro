@@ -191,12 +191,18 @@ class MainWindow(QMainWindow, gui):
         captureTime = 1./fps*1000. # [ms]
 
         """
-            Video stream address: It may be an address of an mpeg stream, 
-            e.g. "http://user:pass@cam_address:8081/cgi/mjpg/mjpg.cgi?.mjpg"
+            Video capture address
         """
-        videoStream = 0 # Webcam
-#        videoStream = 'rtsp://' + server_host + ':8554/' # RTSP stream
-#        videoStream = 'picamera' # Raspberry pi camera
+        # Webcam
+        videoStream = 0
+        # RTSP stream
+#        videoStream = 'rtsp://' + server_host + ':8554/'
+        # Raspberry pi camera
+#        videoStream = 'picamera'
+        # Gstreamer0.10 stream
+#        videoStream = 'tcpclientsrc host=' + server_host + ' port=5000 ! gdpdepay ! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! appsink sync=false'
+        # Gstreamer1.0 stream (TODO)
+#        videoStream = 'tcpclientsrc host=' + server_host + ' port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! ffmpegcolorspace ! appsink sync=false'
         
         if videoStream == 0:
             self.cameraPan = 30. # [°]
@@ -232,6 +238,7 @@ class MainWindow(QMainWindow, gui):
         self.target.stack(0.9)
         
         #Create timers
+        self.first = True
         self.captureTimer = QTimer()
 
         #Connects
@@ -306,7 +313,6 @@ class MainWindow(QMainWindow, gui):
         self.pointer.abort()
         
     def OnCaptureTimeout(self):
-        first = True
         try:
             self.video.captureNextFrame()
             self.videoFrame = self.video.convertFrame()
@@ -316,11 +322,11 @@ class MainWindow(QMainWindow, gui):
 #            print 'frame size Y:', self.frameSizeY
             self.graphicsScene.setSceneRect(QRectF(0, 0, self.frameSizeX, self.frameSizeY))
             self.pixmapItem.setPixmap(self.videoFrame)
-            if first:
+            if self.first:
                 x = self.graphicsScene.width() / 2
                 y = self.graphicsScene.height() / 2
                 self.crosshair.draw(x, y)
-                first = False
+                self.first = False
         except Exception as e:
             print >>sys.stderr, "Exception: OnCaptureTimeout():", e
     
