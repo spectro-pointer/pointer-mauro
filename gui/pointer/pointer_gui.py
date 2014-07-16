@@ -3,7 +3,6 @@
 import sys
 
 from PyQt4.QtCore import *
-#from PyQt4 import QtGui, QtCore, Qt
 from PyQt4.QtGui import *
 import PyQt4.Qt
 
@@ -14,7 +13,7 @@ import cv2
 import numpy as np
 import pointer_cli_27 as pointer_cli
 
-# picamera stuff
+# Picamera stuff
 import io
 try:
     import picamera
@@ -22,8 +21,10 @@ except:
     print >>sys.stderr, "Warning: picamera module not found"
     pass
 
-# Pointer server hostname
-server_host = 'pi'
+# Pointer server hostname/IP
+pointer_server = 'pi'
+# Camera server hostname/IP
+camera_server = pointer_server
 
 class Video():
     """
@@ -32,7 +33,7 @@ class Video():
             - QtGui output format support
     """
     def __init__(self, stream, res=None):
-        self.piCamera =False
+        self.piCamera=False
         if stream == 'picamera':
             self.capture = picamera.PiCamera()
             if res:
@@ -174,7 +175,7 @@ class Crosshair():
 class MainWindow(QMainWindow, gui):
     
     # Pointer GUI
-    POINTERGUIVERSION = "0.0.4"
+    POINTERGUIVERSION = "0.0.5"
 
     def __init__(self, parent=None):
 
@@ -184,7 +185,7 @@ class MainWindow(QMainWindow, gui):
 #        self.setWindowIcon(QIcon(QPixmap(":/icons/icons/pointer.png")))
         
         # Pointer client instance
-        self.pointer = pointer_cli.Pointer_CLI()._getPointer(server_host)
+        self.pointer = pointer_cli.Pointer_CLI()._getPointer(pointer_server)
 
         # Video capture
         fps=25
@@ -194,31 +195,27 @@ class MainWindow(QMainWindow, gui):
             Video capture address
         """
         # Webcam
-        videoStream = 0
-        # RTSP stream
-#        videoStream = 'rtsp://' + server_host + ':8554/'
+#        videoStream = 0
         # Raspberry pi camera
 #        videoStream = 'picamera'
-        # Gstreamer0.10 stream
-#        videoStream = 'tcpclientsrc host=' + server_host + ' port=5000 ! gdpdepay ! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! appsink sync=false'
-        # Gstreamer1.0 stream (TODO)
-#        videoStream = 'tcpclientsrc host=' + server_host + ' port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! ffmpegcolorspace ! appsink sync=false'
+        # Rtsp
+#        videoStream = 'rtsp://' + camera_server + ':8554/'
+        # Gstreamer0.10
+#        videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! gdpdepay ! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! appsink sync=false'
+        # Gstreamer1.0
+        videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink sync=false' # ffmpegcolorspace ! 
         
-        if videoStream == 0:
+        if videoStream == 0: # Webcam, default resolution
             self.cameraPan = 30. # [°]
             self.cameraTilt= 20. # [°]
-            self.frameSizeX= 640 # [px]
-            self.frameSizeY= 480 # [px]
         elif videoStream == 'picamera':
             self.cameraPan = 40.5 # [°]
             self.cameraTilt= 22.5 # [°]
             self.frameSizeX= 1080 # [px]
             self.frameSizeY= 720 # [px]
-        else: # rtsp+picamera
+        else: # rtsp/rtp (assumes server with picamera, server set resolution)
             self.cameraPan = 40.5 # [°]
             self.cameraTilt= 22.5 # [°]
-            self.frameSizeX= 1024 # [px]
-            self.frameSizeY= 576  # [px]
 
         # Open the video stream
         self.video = Video(videoStream, (self.frameSizeX, self.frameSizeY))
@@ -237,11 +234,11 @@ class MainWindow(QMainWindow, gui):
         self.target = Crosshair(self.graphicsScene, Qt.green)
         self.target.stack(0.9)
         
-        #Create timers
+        # Create timers
         self.first = True
         self.captureTimer = QTimer()
 
-        #Connects
+        # Connects
         self.connect(self.pushButtonUp, SIGNAL("pressed()"), self.OnPushButtonUpPressed)
         self.connect(self.pushButtonDown, SIGNAL("pressed()"), self.OnPushButtonDownPressed)
         self.connect(self.pushButtonRight, SIGNAL("pressed()"), self.OnPushButtonRightPressed)
@@ -252,7 +249,7 @@ class MainWindow(QMainWindow, gui):
         
 #        self.connect(self.graphicsScene, SIGNAL("changed()"), self.OnSceneChanged)
 
-        #Start timers
+        # Start timers
         self.captureTimer.start(captureTime)
         
 #        desktop = QApplication.desktop();
@@ -265,7 +262,6 @@ class MainWindow(QMainWindow, gui):
         self.update()
 
     def OnPushButtonUpPressed(self):
-#        QMessageBox.warning(self, "Warning", "<strong>Up</strong> pressed.")
         steps = float(self.lineEditSteps.text())
         if self.radioButtonArcmins.isChecked():
             steps /= 60.
