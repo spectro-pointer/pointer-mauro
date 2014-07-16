@@ -5,7 +5,6 @@
 # a developer environment to build OpenCV.
 sudo apt-get -y install build-essential cmake pkg-config
 
-
 # Install Image I/O libraries
 sudo apt-get -y install libjpeg62-dev 
 sudo apt-get -y install libtiff4-dev libjasper-dev
@@ -34,10 +33,10 @@ sudo apt-get -y install libqt4-dev
 
 # Now download OpenCV 2.4 to wherever you want to compile the source
 cd ~/src
-sudo wget http://downloads.sourceforge.net/project/opencvlibrary/opencv-unix/2.4.9/opencv-2.4.9.zip
-sudo chown $SUDO_USER opencv-2.4.*.zip
+sudo wget -c "http://downloads.sourceforge.net/project/opencvlibrary/opencv-unix/2.4.9/opencv-2.4.9.zip"
+sudo chown $USER opencv-2.4.*.zip
 sudo unzip opencv-2.4.*.zip
-sudo chown -R $SUDO_USER opencv-2.4.*
+sudo chown -R $USER opencv-2.4.*/
 
 # Create and build directory and onfigure OpenCV with cmake.
 cd opencv-2.4.*
