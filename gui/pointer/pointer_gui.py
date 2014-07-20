@@ -216,6 +216,8 @@ class MainWindow(QMainWindow, gui):
         else: # rtsp/rtp (assumes server with picamera, server set resolution)
             self.cameraPan = 40.5 # [°]
             self.cameraTilt= 22.5 # [°]
+            self.frameSizeX= 1080 # [px]
+            self.frameSizeY= 720 # [px]
 
         # Open the video stream
         self.video = Video(videoStream, (self.frameSizeX, self.frameSizeY))
