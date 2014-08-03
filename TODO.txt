@@ -30,30 +30,19 @@
         max speed
             using webcam/switches
     ...
-- GUI
-	Settings
-	Window sweeping
-	Moving target tracking
-		webcam based
-
-	Light target tracking
-		webcam based
-        opencv
-        client processing?
 	
 - Raspberry Pi
     Fix /dev/mem access permissions for gpio
-	webcam
-		Logitech driver
 
 	accelerometer
 		better angle estimations
 				
 - pointer server:
-	- Switch 'telescope' vs 'serve' modes
-		support both at the same time?
+	- Add/integrate 'camera' server mode
+		camera settings protocol
 	
-	- Adjust axis speeds to arrive at the same time in elevation and azimuth(nice)
+	- Switch 'telescope' vs. 'serve' modes
+		support both at the same time?
 	
 	- Accelerometer based elevation angle setting
 		integrate accel elevation reading into pointing (i.e. elevation control)
@@ -78,18 +67,36 @@
 	
 	duty cycle?
 	
-    dir change auto adjust
-    	based on accel elevation
-    	based on webcam image movement?
-    
     webcam
     	compass
     	level
     	target tracking
-        light tracking
-    
+        light tracking   
         
 Functions:
+	- GUI
+		Settings
+		Zoom
+	
+	- Window sweeping
+	
+	- Motion detection/Moving target detection/tracking
+		picamera based
+		webcam based
+		client processing?
+		
+	- Light/brightness/color tracking
+		max brightness tracking
+		specific color(i.e. laser) tracking
+		client processing?
+		
+	- Insect/fly detection/tracking
+		client processing?
+	
+	- Window sweeping
+		custom window
+		custom speeds
+
 	- Telescope pointing (done)
 		RA/Dec
 			ntp time (done)
@@ -104,19 +111,4 @@ Functions:
 				magnetic vs. geographic North
 					gps north?
 					magnetic declination table
-				...      
-		
-	- Target tracking
-		moving target detection
-			webcam based
-			picam based
-			
-		brightness/color tracking
-			max brightness tracking
-			specific color(green laser?) tracking
-	
-	- Window sweeping
-		custom window
-		custom speeds
-		
-	- Mouse tracking (GUI)
+				...
