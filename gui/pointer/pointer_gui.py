@@ -22,6 +22,7 @@ except:
     pass
 
 # Pointer server hostname/IP
+#pointer_server = 'torre.hiper3.com.ar'
 pointer_server = 'pi'
 # Camera server hostname/IP
 camera_server = pointer_server
@@ -236,6 +237,9 @@ class MainWindow(QMainWindow, gui):
         self.target = Crosshair(self.graphicsScene, Qt.green)
         self.target.stack(0.9)
         
+        # Scale factor
+        self.scaleFactor = 1.25;
+        
         # Create timers
         self.first = True
         self.captureTimer = QTimer()
@@ -246,6 +250,8 @@ class MainWindow(QMainWindow, gui):
         self.connect(self.pushButtonRight, SIGNAL("pressed()"), self.OnPushButtonRightPressed)
         self.connect(self.pushButtonLeft, SIGNAL("pressed()"), self.OnPushButtonLeftPressed)
         self.connect(self.pushButtonAbort, SIGNAL("pressed()"), self.OnPushButtonAbortPressed)
+        self.connect(self.pushButtonZoomIn, SIGNAL("pressed()"), self.OnPushButtonZoomInPressed)
+        self.connect(self.pushButtonZoomOut, SIGNAL("pressed()"), self.OnPushButtonZoomOutPressed)
         
         self.connect(self.captureTimer, SIGNAL("timeout()"), self.OnCaptureTimeout)
         
@@ -309,7 +315,13 @@ class MainWindow(QMainWindow, gui):
             
     def OnPushButtonAbortPressed(self):
         self.pointer.abort()
-        
+
+    def OnPushButtonZoomInPressed(self):
+        self.graphicsView.scale(self.scaleFactor, self.scaleFactor)
+
+    def OnPushButtonZoomOutPressed(self):
+        self.graphicsView.scale(1./self.scaleFactor, 1./self.scaleFactor)
+                
     def OnCaptureTimeout(self):
         try:
             self.video.captureNextFrame()
