@@ -836,10 +836,10 @@ class GenericPointer(RAdecPointer):
         elif coords == 'RAdec':
             RAdecPointer.move(self, v1, v2)
         else: # two coords movement (in steps)
-            axes= {}
-            for a, v in zip(coords[:2], (v1, v2)):
-                axes[a] = v
-            Pointer.move(axes)
+            ax = dict()
+            for axis, steps in zip(coords[:2], (v1, v2)):
+                ax[self.axes[axis]] = int(round(steps))
+            Pointer.move(self, ax)
             
     def home(self, coords, v1, v2):
         print('coords:', coords)
