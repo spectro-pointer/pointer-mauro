@@ -752,12 +752,12 @@ class RAdecPointer(AzElPointer):
 
     def get(self):
         """ Get actual RA and Dec values
-            RA format is 'HHMMSS.sss'
+            RA is in hours
             Dec in degrees
         """ 
         ra, dec = self.get2()
         # FIXME: implement RA conversion
-        return ra, dec
+        return ra / (180./12.), dec
         
     def get2(self):
         """ Get actual RA and Dec values, in degrees
