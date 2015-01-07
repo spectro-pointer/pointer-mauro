@@ -835,6 +835,11 @@ class GenericPointer(RAdecPointer):
             AzElPointer.move(self, v1, v2)
         elif coords == 'RAdec':
             RAdecPointer.move(self, v1, v2)
+        else: # two coords movement (in steps)
+            axes= {}
+            for a, v in zip(coords[:2], (v1, v2)):
+                axes[a] = v
+            Pointer.move(axes)
             
     def home(self, coords, v1, v2):
         print('coords:', coords)
