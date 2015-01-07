@@ -22,10 +22,11 @@ except:
     pass
 
 # Pointer server hostname/IP
-#pointer_server = 'torre.hiper3.com.ar'
-pointer_server = 'pi'
+pointer_server = 'torre.hiper3.com.ar'
+#pointer_server = 'pi'
 # Camera server hostname/IP
 camera_server = pointer_server
+#camera_server = 'picamera'
 
 class Video():
     """
@@ -191,6 +192,8 @@ class MainWindow(QMainWindow, gui):
         # Video capture
         fps=25
         captureTime = 1./fps*1000. # [ms]
+        
+        dataTime = 2000. # [ms]
 
         """
             Video capture address
@@ -243,6 +246,8 @@ class MainWindow(QMainWindow, gui):
         # Create timers
         self.first = True
         self.captureTimer = QTimer()
+        
+        self.dataTimer = QTimer()
 
         # Connects
         self.connect(self.pushButtonUp, SIGNAL("pressed()"), self.OnPushButtonUpPressed)
@@ -254,11 +259,14 @@ class MainWindow(QMainWindow, gui):
         self.connect(self.pushButtonZoomOut, SIGNAL("pressed()"), self.OnPushButtonZoomOutPressed)
         
         self.connect(self.captureTimer, SIGNAL("timeout()"), self.OnCaptureTimeout)
+        self.connect(self.dataTimer, SIGNAL("timeout()"), self.OnDataTimeout)
         
 #        self.connect(self.graphicsScene, SIGNAL("changed()"), self.OnSceneChanged)
 
         # Start timers
         self.captureTimer.start(captureTime)
+        
+        self.dataTimer.start(dataTime)
         
 #        desktop = QApplication.desktop();
 #        self.screen_width = desktop.width();
@@ -276,7 +284,7 @@ class MainWindow(QMainWindow, gui):
         elif self.radioButtonArcsecs.isChecked():
             steps /= 3600.
         if self.radioButtonSteps.isChecked():
-            self.pointer.move('X', steps)
+            self.pointer.move('X', steps) # TODO: Add protocol support
         else:
             self.pointer.move('AzEl', 0, steps)
 
@@ -339,6 +347,21 @@ class MainWindow(QMainWindow, gui):
                 self.first = False
         except Exception as e:
             print >>sys.stderr, "Exception: OnCaptureTimeout():", e
+            
+    def OnDataTimeout(self):
+        try:
+            v1, v2 = self.pointer.get('AzEl')
+            self.lineEditAz.setText(u'%.4f°' % v1)
+            self.lineEditEl.setText(u'%.4f°' % v2)
+            v1, v2 = self.pointer.get('RAdec')
+            h = int(v1)
+            m = int((v1 - h)*60.)
+            s = (v1 - h - m / 60.)*3600.
+            self.lineEditRA.setText(u'%02d:%02d:%05.2f' % (h, m, s))
+            self.lineEditDec.setText(u'%.4f°' % v2)
+        except Exception as e:
+            print >>sys.stderr, "Exception: OnDataTimeout():", e
+
     
 if __name__ == "__main__":
     QApplication.setApplicationName("POINTERGUI");

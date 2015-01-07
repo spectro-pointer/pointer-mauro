@@ -757,7 +757,7 @@ class RAdecPointer(AzElPointer):
         """ 
         ra, dec = self.get2()
         # FIXME: implement RA conversion
-        return ra / (180./12.), dec
+        return ra / 15., dec
         
     def get2(self):
         """ Get actual RA and Dec values, in degrees

@@ -265,13 +265,16 @@ class Pointer_CLI(object):
             pointer get
         """
         v1, v2 = pointer.get('AzEl')
-        self.tell("\nAzimuth: %.2f, " \
-                  "Elevation: %.2f" \
+        self.tell("\nAzimuth: %.2f°, " \
+                  "Elevation: %.2f°" \
                   % (v1, v2))
         v1, v2 = pointer.get('RAdec')
-        self.tell("RA: %.2f, " \
-                  "Dec: %.2f" \
-                  % (v1, v2))
+        h = int(v1)
+        m = int((v1 - h)*60.)
+        s = (v1 - h - m / 60.)*3600.
+        self.tell("RA: %02d:%02d:%05.2f, " \
+                  "Dec: %.2f°" \
+                  % (h, m, s, v2))
     get.cli_options = ((), ('-s'))
             
     def set(self, pointer, coords=None, v1=None, v2=None):
