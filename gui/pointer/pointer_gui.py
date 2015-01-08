@@ -284,7 +284,7 @@ class MainWindow(QMainWindow, gui):
         elif self.radioButtonArcsecs.isChecked():
             steps /= 3600.
         if self.radioButtonSteps.isChecked():
-            self.pointer.move('X', steps) # TODO: Add protocol support
+            self.pointer.move('X', steps, 0)
         else:
             self.pointer.move('AzEl', 0, steps)
 
@@ -295,7 +295,7 @@ class MainWindow(QMainWindow, gui):
         elif self.radioButtonArcsecs.isChecked():
             steps /= 3600.
         if self.radioButtonSteps.isChecked():
-            self.pointer.move('X', -steps)
+            self.pointer.move('X', -steps, 0)
         else:
             self.pointer.move('AzEl', 0, -steps)
 
@@ -306,7 +306,7 @@ class MainWindow(QMainWindow, gui):
         elif self.radioButtonArcsecs.isChecked():
             steps /= 3600.
         if self.radioButtonSteps.isChecked():
-            self.pointer.move('Z', steps)
+            self.pointer.move('Z', steps, 0)
         else:
             self.pointer.move('AzEl', steps, 0)
 
@@ -317,7 +317,7 @@ class MainWindow(QMainWindow, gui):
         elif self.radioButtonArcsecs.isChecked():
             steps /= 3600.
         if self.radioButtonSteps.isChecked():
-            self.pointer.move('Z', -steps)
+            self.pointer.move('Z', -steps, 0)
         else:
             self.pointer.move('AzEl', -steps, 0)
             
