@@ -757,7 +757,6 @@ class RAdecPointer(AzElPointer):
             Dec in degrees
         """ 
         ra, dec = self.get2()
-        # FIXME: implement RA conversion
         return ra / 15., dec
         
     def get2(self):
@@ -766,6 +765,8 @@ class RAdecPointer(AzElPointer):
         Az, Alt = AzElPointer.get(self)
         
         # convert to RA/dec
+        if Az == 0. and Alt < 0.: # avoid math overflow
+            Az += .00014 # ~1/2 arcsec
         AltAz = sidereal.AltAz(radians(Alt), radians(Az))
         
         dt = datetime.datetime.utcnow()
