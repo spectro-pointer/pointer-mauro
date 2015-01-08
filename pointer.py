@@ -386,7 +386,8 @@ class Pointer(GpioPointer):
         self.sleep_OFF = (.005, .0075, .020, .0025)
         
         # Dir change adjustment (CW, CCW) for X(El), Y , Z(Az), A
-        self.dirChangeSteps = [(20, 20), (0, 0), (5, 5), (0, 0)]
+        #self.dirChangeSteps = [(20, 20), (0, 0), (5, 5), (0, 0)]
+        self.dirChangeSteps = [(0, 0), (0, 0), (0, 0), (0, 0)]
         self.lastDir = [DIR_CW, DIR_CW, DIR_CW, DIR_CW]
         
         super(Pointer, self).__init__()
