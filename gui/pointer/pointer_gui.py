@@ -9,81 +9,16 @@ import PyQt4.Qt
 from mainwindow import Ui_MainWindow as gui
 #import gc
 
-import cv2
-import numpy as np
 import pointer_cli_27 as pointer_cli
 
-# Picamera stuff
-import io
-try:
-    import picamera
-except:
-    print >>sys.stderr, "Warning: picamera module not found"
-    pass
+# Video/Picamwera stuff
+from util_27 import Video
 
-# Pointer server hostname/IP
-pointer_server = 'torre.hiper3.com.ar'
-#pointer_server = 'pi'
-# Camera server hostname/IP
-camera_server = pointer_server
-#camera_server = 'picamera'
-
-class Video():
-    """
-        Video class
-            - Webcam/Picamera/Video stream abstraction
-            - QtGui output format support
-    """
-    def __init__(self, stream, res=None):
-        self.piCamera=False
-        if stream == 'picamera':
-            self.capture = picamera.PiCamera()
-            if res:
-                self.capture.resolution = res
-            self.capture.hflip = True
-            self.capture.vflip = True
-            self.piCamera = True
-        else:
-            self.capture = cv2.VideoCapture()
-            if not self.capture.open(stream):
-                print >>sys.stderr, "Error: video stream or device open failed"
-                sys.exit(-1);
-        self.currentFrame=np.array([])
-
-    def captureNextFrame(self):
-        """ 
-            Capture frame, reverse RBG BGR, and return opencv image                                                                         
-        """
-        ret = False
-        readFrame = None
-        if self.piCamera:
-            ret, readFrame=self.readPicamera()
-        else:
-            ret, readFrame=self.capture.read()
-        if(ret):
-            self.currentFrame=cv2.cvtColor(readFrame, cv2.COLOR_BGR2RGB)
-        else:
-            print >>sys.stderr, 'Warning: no frame'
-            
-    def readPicamera(self):
-        """ 
-            Read a single frame from the camera and return the data as an OpenCV
-            image (which is a numpy array).
-        """
-        # This code is based on the picamera example at:
-        # http://picamera.readthedocs.org/en/release-1.0/recipes1.html#capturing-to-an-opencv-object
-        # Capture a frame from the camera.
-        data = io.BytesIO()
-        try:
-            self.capture.capture(data, format='jpeg', use_video_port=True)
-        except Exception as e:
-            print >>sys.stderr, 'Exception: readPiCamera():', e
-            return False, None
-        data = np.fromstring(data.getvalue(), dtype = np.uint8)
-        # Decode the image data and return an OpenCV image.
-        readFrame = cv2.imdecode(data, 1)
-        return True, readFrame
-
+class GuiVideo(Video):
+    """ A Video class with QImage conversion """
+    def __init__(self, *args):
+        Video.__init__(self, *args)
+        
     def convertFrame(self):
         """
             Converts frame to format suitable for QtGui
@@ -100,7 +35,14 @@ class Video():
         except Exception as e:
             print >>sys.stderr, 'Exception: convertFrame():', e
             return None
-        
+
+# Pointer server hostname/IP
+#pointer_server = 'torre.hiper3.com.ar'
+pointer_server = 'pi'
+# Camera server hostname/IP
+#camera_server = pointer_server
+camera_server = 'picamera'
+       
 class GraphicsPixmapItem(QGraphicsPixmapItem):
     def __init__(self, main=None):
         super(QGraphicsPixmapItem, self).__init__()
@@ -208,6 +150,7 @@ class MainWindow(QMainWindow, gui):
 #        videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! gdpdepay ! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! appsink sync=false'
         # Gstreamer1.0
         videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink sync=false' # ffmpegcolorspace ! 
+#        videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! h264parse ! avdec_h264 ! videoconvert ! appsink sync=false' # ffmpegcolorspace !
         
         if videoStream == 0: # Webcam, default resolution
             self.cameraPan = 30. # [°]
@@ -224,7 +167,7 @@ class MainWindow(QMainWindow, gui):
             self.frameSizeY= 720 # [px]
 
         # Open the video stream
-        self.video = Video(videoStream, (self.frameSizeX, self.frameSizeY))
+        self.video = GuiVideo(videoStream, (self.frameSizeX, self.frameSizeY))
 
         # Graphics scene
         self.graphicsScene = QGraphicsScene()
