@@ -11,8 +11,12 @@
    AsyncXMLRPCServer is a stoppable (incl. 'serve_forever') subclass of
    SimpleXMLRPCServer.
    
-   TelescopeServer is a TCP server for stellarium telescope control
-
+   TelescopeServer is a TCP server for stellarium telescope control.
+   
+   A Video abstraction class, used by both the gui client and the camera server.
+   
+   CameraServer, a picamera video/pictures server class.
+   
 """
 
 
@@ -120,7 +124,7 @@ class TelescopeRequestHandler(socketserver.BaseRequestHandler):
         """ Earth rotation compensation """
         self.cv = threading.Condition()
         self.rotationInterval = 10. # [seconds]
-        self.ra = 0.
+        self.ra = 0. # FIXME: None instead of 0
         self.dec = 0.
 
         super(TelescopeRequestHandler, self).__init__(request, client_addr, server)
@@ -145,7 +149,7 @@ class TelescopeRequestHandler(socketserver.BaseRequestHandler):
         """Start a new thread to keep sending our position."""
         t1 = threading.Thread(target = self.sendCurrentPosition)
 #        if self.daemon_threads:
-#            t2.setDaemon (1)
+#            t1.setDaemon(1)
         t1.start()
         
 #        """Start a new thread to compensate Earth's rotation."""
@@ -284,3 +288,47 @@ class TelescopeServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def __init__(self, server_address, RequestHandlerClass, requestHandlerArg):
         socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass)
         self.pointerInstance = requestHandlerArg # our pointer instance
+
+
+from video import Video
+#class CameraServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class CameraServer():
+    # FIXME: socket server is pipelined to gstreamer command (use gst/opencv2)   
+#    daemon_threads = True
+    # much faster rebinding
+#    allow_reuse_address = True
+
+    self.frameSizeX = 1080
+    self.frameSizeY = 720
+    
+    self.fps = 25
+    
+#    def __init__(self, server_address, RequestHandlerClass, requestHandlerArg):
+#        socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass)
+#        self.pointerInstance = requestHandlerArg # our pointer instance
+    def __init__(self, server_address = ('0.0.0.0', 5000)):#, requestHandlerArg):
+        self.server_address = server_address 
+        
+        self.video = Video('picamera', (self.frameSizeX, self.frameSizeY))
+        
+        t1 = threading.Thread(target = self.videoServer)
+#        if self.daemon_threads:
+#            t1.setDaemon(1)
+        t1.start()
+
+    def videoServer(self):
+        """ gstreamer server command line """ # FIXME: Use python gst module
+        serverline = 'gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! gdppay ! tcpserversink host=%s port=%d' % server_address
+        serverline = serverline.split()
+        try:
+            server = subprocess.Popen(serverline, stdin=subprocess.PIPE)
+            while True:
+                # Repeatedly read one frame of data from the camera and write it to
+                # the streaming server
+                frame = self.video.captureNextFrame()
+                if not frame:
+                    break
+                server.stdin.write(frame)
+                time.sleep(1./self.fps)
+        finally:
+            server.terminate()

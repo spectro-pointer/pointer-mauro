@@ -2,21 +2,20 @@
 #
 #    Copyright 2013, Mauro Lacy, mauro@lacy.com.ar
 #
-#    This file is part of CNC/Pointer.
+#    This file is part of Pointer.
 #
-#    CNC/Pointer is free software: you can redistribute it and/or modify
+#    Pointer is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    CNC/Pointer is distributed in the hope that it will be useful,
+#    Pointer is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with CNC/Pointer.  If not, see <http://www.gnu.org/licenses/>.
-
+#    along with Pointer.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import getopt
@@ -181,13 +180,60 @@ class Pointer_CLI(object):
           pointer -s 192.168.0.100 get
         """
         with server.PointerServer(pointer) as rpcd:
-            self.tell("Server started...")
+            self.tell("Pointer server started...")
             try:
                 rpcd.serve_forever()
             except (KeyboardInterrupt, SystemExit):
                 pass
-        self.tell("Server closed")
+        self.tell("pointer server closed")
     serve.cli_options = ((), ())
+
+    def camera(self, pointer):
+        import picamera
+        import socket
+        # Picamera server
+        with picamera.PiCamera() as camera:
+#            camera.resolution = (640, 480)
+            camera.resolution = (1920, 1080)
+            camera.framerate = 25
+
+            server_socket = socket.socket()
+            server_socket.bind(('0.0.0.0', 5000))
+            server_socket.listen(0)
+
+            # Accept a single connection and make a file-like object out of it
+            connection = server_socket.accept()[0].makefile('wb')
+            try:
+                camera.start_recording(connection, format='h264', quality=30)
+                camera.wait_recording(60)
+                camera.stop_recording()
+            except (KeyboardInterrupt, SystemExit):
+                pass
+            finally:
+                connection.close()
+                server_socket.close()
+        self.tell("Camera server closed")
+
+        """Serve local camera to a Pointer client or GUI
+
+           Start a server that provides access to the local (pi)camera
+           to a Pointer client. TCP-port 5000 must be accessible.
+
+           For example, on the server (where the Camera is):
+           pointer camera
+
+          ... and the client:
+          pointer -c 192.168.0.100 view
+          pointer_gui.py -c 192.168.0.100
+        """
+        server = util.CameraServer(('', 5000), util.CameraRequestHandler, pointer)
+        self.tell("Camera server started...")
+        try:
+            server.serve_forever()
+        except (KeyboardInterrupt, SystemExit):
+            self.tell("Camera server closed")
+            server.shutdown()
+    camera.cli_options = ((), ())
     
     def telescope(self, pointer):
         """Serve local telescope hardware to a telescope client (i.e. stellarium)
@@ -369,5 +415,6 @@ class Pointer_CLI(object):
                 'abort': abort,
                 'help': print_help,
                 'serve': serve,
+                'camera': camera,
                 'telescope': telescope
                 }
