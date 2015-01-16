@@ -156,11 +156,12 @@ class Camera_CLI(object):
         self.tell("Camera server closed")
     serve.cli_options = ((), ())
     
-    def take(self, cam):
+    def take(self, camera):
         """Take a picture
             For example: camera -s raspberrypi take"""
-        cam.take()
-    take.cli_options = (('-s'), ())
+        picture = camera.take()
+        print picture
+    take.cli_options = (('-s',), ())
         
     commands = {'help': print_help,
                 'serve': serve,

@@ -79,3 +79,6 @@ class Camera(util.Thread):
     def serve_forever(self):
         while not self.shallStop:
             time.sleep(1)
+            
+    def takePicture(self):
+        return 'Picture'

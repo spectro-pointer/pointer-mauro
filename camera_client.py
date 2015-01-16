@@ -104,4 +104,4 @@ class RPCCamera(object):
     @handle_xmlfault()
     def take(self):
         """ Takes a still picture."""
-        return self.cli.takePicture()
+        return self.cli.take()
