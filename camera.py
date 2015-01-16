@@ -14,21 +14,24 @@
 
 #import socket
 #import SimpleXMLRPCServer
-#import time
 #import threading
 
 #import config
         
 import sys
 import subprocess
+import time
 
-class Camera(Thread):
-    import picamera
+import util_27 as util
+
+class Camera(util.Thread):
     # FIXME: socket server is pipelined to gstreamer command (use gst/opencv2 instead)   
     
     def __init__(self, server_address = ('0.0.0.0', 5000)):   
+        import picamera
+
         self.server_address = server_address 
-        Thread.__init__(self)
+        util.Thread.__init__(self)
         self.setDaemon(True)
         self.shallStop = False
 
@@ -38,12 +41,14 @@ class Camera(Thread):
         self.fps = 25
     
         self.video = picamera.PiCamera()
-        
+
 #        self.video.res = (self.frameSizeX, self.frameSizeY)
         self.video.resolution = (self.frameSizeX, self.frameSizeY) 
         self.video.framerate = self.fps
         self.video.vflip=True
         self.video.hflip=True
+        self.video.exposure_mode = 'night'
+        self.video.iso = 800
         
         self.start()
 
@@ -65,7 +70,7 @@ class Camera(Thread):
             pass
             
     def shutdown(self):
-        Thread.shutdown(self)
+        util.Thread.shutdown(self)
     
     def serve_forever(self):
         while not self.shallStop:

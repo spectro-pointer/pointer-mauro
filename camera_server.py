@@ -3,7 +3,7 @@
 
 
 
-import http.server
+import BaseHTTPServer
 #import hashlib
 #import os
 #import random
@@ -21,7 +21,7 @@ import util_27 as util
 # prevent call to socket.getfqdn
 def fast_address_string(self):
     return '%s' % self.client_address[0]
-http.server.BaseHTTPRequestHandler.address_string = fast_address_string
+BaseHTTPServer.BaseHTTPRequestHandler.address_string = fast_address_string
 del fast_address_string
 
 def getServer(url):

@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+if __name__ == "__main__":
+    import sys
+    import camera_cli
+    try:
+        camera_cli.Camera_CLI().initFromArgv()
+    except (KeyboardInterrupt, SystemExit):
+        print >>sys.stderr, "\nInterrupted..."
+    except camera_cli.CameraRuntimeError as e:
+        sys.exit(e)
