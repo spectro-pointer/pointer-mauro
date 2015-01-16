@@ -62,7 +62,6 @@ class Camera_CLI(object):
                                        's:h', \
                                        ['help'])
         args = dict(args)
-
         if len(commands) == 1 and commands[0] in self.commands:
             command = commands[0]
         else:
@@ -96,7 +95,6 @@ class Camera_CLI(object):
             pass
         elif '-s' in args:
             server_host = args['-s']
-#            options['pointer'] = self._getPointer(server_host)
             options['camera'] = self._getCamera(server_host)
         else: # local camera
             options['camera'] = camera.Camera()
@@ -107,7 +105,7 @@ class Camera_CLI(object):
 
            You should have figured this one out by now.
         """
-        self.tell('Usage: pointer [options] command'
+        self.tell('Usage: camera [options] command'
             '\n'
             '\nRecognized options:'
             '\n  -h|--help        : Print help for a certain command'
@@ -121,7 +119,7 @@ class Camera_CLI(object):
                                         func.__doc__.split('\n')[0]))
     print_help.cli_options = ((), ())
 
-    def print_command_help(self, pointer, command):
+    def print_command_help(self, command, camera=None):
         """Print help about a certain command"""
         doc = self.commands[command].__doc__
         self.tell('\n'.join(l.strip() for l in doc.split('\n')))
@@ -135,17 +133,19 @@ class Camera_CLI(object):
         return camera
 
     def serve(self, camera):
-        """Serve local camera to a Pointer client or GUI
+        """Serve local camera to a Camera client or GUI
 
            Start a server that provides access to the local (pi)camera
-           to a Pointer client. TCP-port 5000 must be accessible.
+           to a Camera client.
+           TCP-port 5000 for the video stream must be accessible.
+           TCP-port 17937 must be accessible for xmlrpc commands 
 
            For example, on the server (where the Camera is):
-           camera serve
+           ./camera serve
 
           ... and the client:
           camera -s 192.168.0.100 take
-          pointer_gui.py -s 192.168.0.100
+          pointer_gui.py -c 192.168.0.100
         """
         with camera_server.CameraServer(camera) as server:
             self.tell("Camera server started...")
@@ -158,12 +158,11 @@ class Camera_CLI(object):
     
     def take(self, cam):
         """Take a picture
-            For example:
-            pointer -s raspberrypi take
-        """
+            For example: camera -s raspberrypi take"""
         cam.take()
     take.cli_options = (('-s'), ())
         
-    commands = {'serve': serve,
+    commands = {'help': print_help,
+                'serve': serve,
                 'take': take
                 }

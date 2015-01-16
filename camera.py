@@ -28,7 +28,11 @@ class Camera(util.Thread):
     # FIXME: socket server is pipelined to gstreamer command (use gst/opencv2 instead)   
     
     def __init__(self, server_address = ('0.0.0.0', 5000)):   
-        import picamera
+        try:
+            import picamera
+        except:
+            print >>sys.stderr, "Warning: picamera module not found.\n"
+            return
 
         self.server_address = server_address 
         util.Thread.__init__(self)

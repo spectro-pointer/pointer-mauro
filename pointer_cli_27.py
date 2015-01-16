@@ -28,7 +28,6 @@ import getopt
 import sys
 #import time
 
-#import pointer
 #import config
 
 import pointer_client_27 as client
@@ -38,7 +37,6 @@ import util_27 as util
 
 class PointerRuntimeError(RuntimeError):
     pass
-
 
 class Pointer_CLI(object):
 
