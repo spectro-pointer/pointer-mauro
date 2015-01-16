@@ -36,6 +36,7 @@ import util
 # xml-rpc
 import pointer_client as client
 import pointer_server as server
+import telescope_server
 
 class PointerRuntimeError(RuntimeError):
     pass
@@ -200,7 +201,7 @@ class Pointer_CLI(object):
            ... and in Stellarium, configure the server's IP in an 'External software
            or remote computer' telescope control
         """
-        server = util.TelescopeServer(('', 10001), util.TelescopeRequestHandler, pointer)
+        server = telescope_server.TelescopeServer(('', 10001), telescope_server.TelescopeRequestHandler, pointer)
         self.tell("Telescope server started...")
         try:
             server.serve_forever()
@@ -208,21 +209,6 @@ class Pointer_CLI(object):
             self.tell("Telescope server closed")
             server.shutdown()
     telescope.cli_options = ((), ())
-
-    def camera(self):
-        """Serve local camera to a Pointer client or GUI
-
-           Start a server that provides access to the local (pi)camera
-           to a Pointer client. TCP-port 5000 must be accessible.
-
-           For example, on the server (where the Camera is):
-           pointer camera
-
-          ... and the client:
-          pointer -c 192.168.0.100 view
-          pointer_gui.py -c 192.168.0.100
-        """
-        self.tell("Not supported in 3.0 version")
 
     def move(self, pointer, coords=None, v1=0., v2=0.):
         """Relative move the given Coords (Azimuth and Elevation [degrees], or Right Ascension [HHMMSS.sss] and Declination [degrees])
@@ -383,6 +369,5 @@ class Pointer_CLI(object):
                 'abort': abort,
                 'help': print_help,
                 'serve': serve,
-                'camera': camera,
                 'telescope': telescope
                 }

@@ -31,11 +31,10 @@ import sys
 #import pointer
 #import config
 
-# XML-RPC server and Telescope Server
-import util_27 as util
-# xml-rpc
 import pointer_client_27 as client
 #import pointer_server as server
+
+import util_27 as util
 
 class PointerRuntimeError(RuntimeError):
     pass
@@ -122,11 +121,8 @@ class Pointer_CLI(object):
         elif '-s' in args:
             server_host = args['-s']
             options['pointer'] = self._getPointer(server_host)
-#        else: # local pointer
-#            if command == 'telescope':
-#                options['pointer'] = pointer.RAdecPointer()
-#            else:
-#                options['pointer'] = pointer.GenericPointer()
+        else: # local pointer not supported in 2.7
+            options['pointer'] = None
         func(self, **options)
 
     def print_help(self):
@@ -166,7 +162,7 @@ class Pointer_CLI(object):
         pointer = client.getPointerClient(url)
         self.tell("connected.")
         return pointer
-
+    
     def serve(self, pointer):
         """Serve local hardware to a Pointer client
 
@@ -182,28 +178,6 @@ class Pointer_CLI(object):
         self.tell("Not supported in 2.7 version")
     serve.cli_options = ((), ())
 
-    def camera(self):
-        """Serve local camera to a Pointer client or GUI
-
-           Start a server that provides access to the local (pi)camera
-           to a Pointer client. TCP-port 5000 must be accessible.
-
-           For example, on the server (where the Camera is):
-           pointer camera
-
-          ... and the client:
-          pointer -c 192.168.0.100 view
-          pointer_gui.py -c 192.168.0.100
-        """
-        with util.CameraServer() as server:
-            self.tell("Camera server started...")
-            try:
-                server.serve_forever()
-            except (KeyboardInterrupt, SystemExit):
-                pass
-        self.tell("Camera server closed")
-    camera.cli_options = ((), ())
-    
     def telescope(self, pointer):
         """Serve local telescope hardware to a telescope client (i.e. stellarium)
 
@@ -216,13 +190,7 @@ class Pointer_CLI(object):
            ... and in Stellarium, configure the server's IP in an 'External software
            or remote computer' telescope control
         """
-        server = util.TelescopeServer(('', 10001), util.TelescopeRequestHandler, pointer)
-        self.tell("Telescope server started...")
-        try:
-            server.serve_forever()
-        except (KeyboardInterrupt, SystemExit):
-            self.tell("Telescope server closed")
-            server.shutdown()
+        self.tell("Telescope server nos supported in 2.7 version.")
     telescope.cli_options = ((), ())
 
     def move(self, pointer, coords=None, v1=0., v2=0.):
@@ -384,6 +352,5 @@ class Pointer_CLI(object):
                 'abort': abort,
                 'help': print_help,
                 'serve': serve,
-                'camera': camera,
                 'telescope': telescope
                 }
