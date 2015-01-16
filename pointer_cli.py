@@ -185,56 +185,9 @@ class Pointer_CLI(object):
                 rpcd.serve_forever()
             except (KeyboardInterrupt, SystemExit):
                 pass
-        self.tell("pointer server closed")
+        self.tell("Pointer server closed")
     serve.cli_options = ((), ())
 
-    def camera(self, pointer):
-        import picamera
-        import socket
-        # Picamera server
-        with picamera.PiCamera() as camera:
-#            camera.resolution = (640, 480)
-            camera.resolution = (1920, 1080)
-            camera.framerate = 25
-
-            server_socket = socket.socket()
-            server_socket.bind(('0.0.0.0', 5000))
-            server_socket.listen(0)
-
-            # Accept a single connection and make a file-like object out of it
-            connection = server_socket.accept()[0].makefile('wb')
-            try:
-                camera.start_recording(connection, format='h264', quality=30)
-                camera.wait_recording(60)
-                camera.stop_recording()
-            except (KeyboardInterrupt, SystemExit):
-                pass
-            finally:
-                connection.close()
-                server_socket.close()
-        self.tell("Camera server closed")
-
-        """Serve local camera to a Pointer client or GUI
-
-           Start a server that provides access to the local (pi)camera
-           to a Pointer client. TCP-port 5000 must be accessible.
-
-           For example, on the server (where the Camera is):
-           pointer camera
-
-          ... and the client:
-          pointer -c 192.168.0.100 view
-          pointer_gui.py -c 192.168.0.100
-        """
-        server = util.CameraServer(('', 5000), util.CameraRequestHandler, pointer)
-        self.tell("Camera server started...")
-        try:
-            server.serve_forever()
-        except (KeyboardInterrupt, SystemExit):
-            self.tell("Camera server closed")
-            server.shutdown()
-    camera.cli_options = ((), ())
-    
     def telescope(self, pointer):
         """Serve local telescope hardware to a telescope client (i.e. stellarium)
 
@@ -255,6 +208,21 @@ class Pointer_CLI(object):
             self.tell("Telescope server closed")
             server.shutdown()
     telescope.cli_options = ((), ())
+
+    def camera(self):
+        """Serve local camera to a Pointer client or GUI
+
+           Start a server that provides access to the local (pi)camera
+           to a Pointer client. TCP-port 5000 must be accessible.
+
+           For example, on the server (where the Camera is):
+           pointer camera
+
+          ... and the client:
+          pointer -c 192.168.0.100 view
+          pointer_gui.py -c 192.168.0.100
+        """
+        self.tell("Not supported in 3.0 version")
 
     def move(self, pointer, coords=None, v1=0., v2=0.):
         """Relative move the given Coords (Azimuth and Elevation [degrees], or Right Ascension [HHMMSS.sss] and Declination [degrees])

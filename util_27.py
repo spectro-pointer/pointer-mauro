@@ -1,18 +1,17 @@
 # -*- coding: UTF-8 -*-
 #
 #    This file is part of Pointer.
-#    It's based on Lukas Lueg's Pyrit codebase.
+#    Based on Lukas Lueg's Pyrit codebase.
 
 """Various utility- and backend-related classes and data for Pointer.
+   Python 2.7 version.
 
    Thread is a subclass of threading.Thread that adds a context-manager to
    make it 'stoppable'.
 
    AsyncXMLRPCServer is a stoppable (incl. 'serve_forever') subclass of
-   SimpleXMLRPCServer.
+   SimpleXMLRPCServer.  
    
-   TelescopeServer is a TCP server for stellarium telescope control
-
 """
 
 from __future__ import with_statement

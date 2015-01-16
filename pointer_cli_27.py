@@ -2,21 +2,20 @@
 #
 #    Copyright 2013, Mauro Lacy, mauro@lacy.com.ar
 #
-#    This file is part of CNC/Pointer.
+#    This file is part of Pointer.
 #
-#    CNC/Pointer is free software: you can redistribute it and/or modify
+#    Pointer is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    CNC/Pointer is distributed in the hope that it will be useful,
+#    Pointer is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with CNC/Pointer.  If not, see <http://www.gnu.org/licenses/>.
-
+#    along with Pointer.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import getopt
@@ -35,8 +34,8 @@ import sys
 # XML-RPC server and Telescope Server
 import util_27 as util
 # xml-rpc
-import client_27 as client
-#import server
+import pointer_client_27 as client
+#import pointer_server as server
 
 class PointerRuntimeError(RuntimeError):
     pass
@@ -180,14 +179,30 @@ class Pointer_CLI(object):
           ... and the client:
           pointer -s 192.168.0.100 get
         """
-        with server.PointerServer(pointer) as rpcd:
-            self.tell("Server started...")
+        self.tell("Not supported in 2.7 version")
+    serve.cli_options = ((), ())
+
+    def camera(self):
+        """Serve local camera to a Pointer client or GUI
+
+           Start a server that provides access to the local (pi)camera
+           to a Pointer client. TCP-port 5000 must be accessible.
+
+           For example, on the server (where the Camera is):
+           pointer camera
+
+          ... and the client:
+          pointer -c 192.168.0.100 view
+          pointer_gui.py -c 192.168.0.100
+        """
+        with util.CameraServer() as server:
+            self.tell("Camera server started...")
             try:
-                rpcd.serve_forever()
+                server.serve_forever()
             except (KeyboardInterrupt, SystemExit):
                 pass
-        self.tell("Server closed")
-    serve.cli_options = ((), ())
+        self.tell("Camera server closed")
+    camera.cli_options = ((), ())
     
     def telescope(self, pointer):
         """Serve local telescope hardware to a telescope client (i.e. stellarium)
@@ -265,14 +280,17 @@ class Pointer_CLI(object):
             pointer get
         """
         v1, v2 = pointer.get('AzEl')
-        self.tell("\nAzimuth: %.2f, " \
-                  "Elevation: %.2f" \
+        self.tell("\nAzimuth: %.2f°, " \
+                  "Elevation: %.2f°" \
                   % (v1, v2))
         v1, v2 = pointer.get('RAdec')
-        self.tell("RA: %.2f, " \
-                  "Dec: %.2f" \
-                  % (v1, v2))
-    get.cli_options = (('-s'), ())
+        h = int(v1)
+        m = int((v1 - h)*60.)
+        s = (v1 - h - m / 60.)*3600.
+        self.tell("RA: %02d:%02d:%05.2f, " \
+                  "Dec: %.2f°" \
+                  % (h, m, s, v2))
+    get.cli_options = ((), ('-s'))
             
     def set(self, pointer, coords=None, v1=None, v2=None):
         """Set pointer position to the given Coords (Azimuth and Elevation [degrees],
@@ -366,5 +384,6 @@ class Pointer_CLI(object):
                 'abort': abort,
                 'help': print_help,
                 'serve': serve,
+                'camera': camera,
                 'telescope': telescope
                 }

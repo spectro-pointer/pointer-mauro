@@ -12,7 +12,7 @@ from mainwindow import Ui_MainWindow as gui
 import pointer_cli_27 as pointer_cli
 
 # Video/Picamwera stuff
-from video import Video
+from video_27 import Video
 
 class GuiVideo(Video):
     """ A Video class with QImage conversion """
