@@ -46,8 +46,9 @@ class Video():
             self.currentFrame=cv2.cvtColor(readFrame, cv2.COLOR_BGR2RGB)
         else:
             print >>sys.stderr, 'Warning: no frame'
+            return None
         return readFrame
-            
+    
     def readPicamera(self):
         """ 
             Read a single frame from the camera and return the data as an OpenCV
