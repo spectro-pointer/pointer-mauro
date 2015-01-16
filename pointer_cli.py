@@ -34,8 +34,8 @@ import pointer
 # XML-RPC server and Telescope Server
 import util
 # xml-rpc
-import client
-import server
+import pointer_client as client
+import pointer_server as server
 
 class PointerRuntimeError(RuntimeError):
     pass
