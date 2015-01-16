@@ -30,7 +30,7 @@ import threading
 
 #import config
 
-VERSION = "0.7"
+VERSION = "0.8"
 __version__ = VERSION
 
 
@@ -61,7 +61,7 @@ class AsyncXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer, Thread):
        Sub-classes should add (name:function)-entries to self.methods
     """
 
-    def __init__(self, (iface, port)=('', 17934)):
+    def __init__(self, iface='', port=17934):
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, (iface, port), \
                                                         logRequests=False)
         Thread.__init__(self)
