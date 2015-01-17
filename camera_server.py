@@ -11,7 +11,7 @@ import BaseHTTPServer
 #import struct
 #import sys
 #import threading
-#import xmlrpclib
+import xmlrpclib
 #import zlib
 
 #import config
@@ -45,4 +45,4 @@ class CameraServer(util.AsyncXMLRPCServer):
         self.start()
 
     def take(self):
-        return self.camera.takePicture()
+        return xmlrpclib.Binary(self.camera.takePicture())

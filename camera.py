@@ -21,6 +21,7 @@
 import sys
 import subprocess
 import time
+import io
 
 import util_27 as util
 
@@ -46,13 +47,19 @@ class Camera(util.Thread):
     
         self.video = picamera.PiCamera()
 
-#        self.video.res = (self.frameSizeX, self.frameSizeY)
+        self.video.led = False
+        
         self.video.resolution = (self.frameSizeX, self.frameSizeY) 
         self.video.framerate = self.fps
+        
         self.video.vflip=True
         self.video.hflip=True
+        
         self.video.exposure_mode = 'night'
-        self.video.iso = 800
+#        self.video.exposure_mode = 'auto'
+#        self.video.iso = 0
+#        self.video.iso = 800
+        self.video.iso = 1600
         
         self.start()
 
@@ -60,15 +67,15 @@ class Camera(util.Thread):
         """ gstreamer server command line """ # FIXME: Use python gst module
         serverline = 'gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! gdppay ! tcpserversink host=%s port=%d' % self.server_address
         serverline = serverline.split()
-        server = subprocess.Popen(serverline, stdin=subprocess.PIPE)
-        self.video.start_recording(server.stdin, format='h264', bitrate=4000000, profile='high', inline_headers=True, intra_period=128)
+        self.server = subprocess.Popen(serverline, stdin=subprocess.PIPE)
+        self.startRecording()
         while not self.shallStop:
             time.sleep(1)
         try:
-            self.video.stop_recording()
-            server.stdin.close()
+            self.stopRecording()
+            self.server.stdin.close()
             time.sleep(.25)
-            server.terminate()
+            self.server.terminate()
         except Exception as e:
             print >>sys.stderr, 'Exception:', e
             pass
@@ -80,5 +87,17 @@ class Camera(util.Thread):
         while not self.shallStop:
             time.sleep(1)
             
+    def startRecording(self):
+        self.video.start_recording(self.server.stdin, format='h264', bitrate=4000000, profile='high', inline_headers=True, intra_period=128)
+            
+    def stopRecording(self):
+        self.video.stop_recording()
+        
     def takePicture(self):
-        return 'Picture'
+        self.stopRecording()
+        self.video.resolution = (2592, 1944) # Full still port resolution
+        picture = io.BytesIO()
+        self.video.capture(picture, format='jpeg', use_video_port=False, resize=None, quality=85)
+        self.video.resolution = (self.frameSizeX, self.frameSizeY)
+        self.startRecording()
+        return picture.getvalue()

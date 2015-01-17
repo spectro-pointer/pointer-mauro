@@ -160,7 +160,8 @@ class Camera_CLI(object):
         """Take a picture
             For example: camera -s raspberrypi take"""
         picture = camera.take()
-        print picture
+        with open("picture.jpg", "wb") as pic:
+            pic.write(picture)
     take.cli_options = (('-s',), ())
         
     commands = {'help': print_help,
