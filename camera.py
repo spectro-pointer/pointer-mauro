@@ -25,16 +25,14 @@ import io
 
 import util_27 as util
 
+try:
+    import picamera
+except:
+    print >>sys.stderr, "Warning: picamera module not found.\n"
+
 class Camera(util.Thread):
     # FIXME: socket server is pipelined to gstreamer command (use gst/opencv2 instead)   
-    
     def __init__(self, server_address = ('0.0.0.0', 5000)):   
-        try:
-            import picamera
-        except:
-            print >>sys.stderr, "Warning: picamera module not found.\n"
-            return
-
         self.server_address = server_address 
         util.Thread.__init__(self)
         self.setDaemon(True)
@@ -60,7 +58,11 @@ class Camera(util.Thread):
 #        self.video.iso = 0
 #        self.video.iso = 800
         self.video.iso = 1600
-        
+
+        self.getters = [m[5:] for m in dir(self.video) if m.find('_get_') == 0]
+        self.setters = [m[5:] for m in dir(self.video) if m.find('_set_') == 0]
+
+        self.recording = False
         self.start()
 
     def run(self):
@@ -76,6 +78,7 @@ class Camera(util.Thread):
             self.server.stdin.close()
             time.sleep(.25)
             self.server.terminate()
+            self.video.close()
         except Exception as e:
             print >>sys.stderr, 'Exception:', e
             pass
@@ -89,15 +92,50 @@ class Camera(util.Thread):
             
     def startRecording(self):
         self.video.start_recording(self.server.stdin, format='h264', bitrate=4000000, profile='high', inline_headers=True, intra_period=128)
+        self.recording = True
             
     def stopRecording(self):
         self.video.stop_recording()
+        self.recording = False
         
+    def get(self, prop):
+        if prop in self.getters:
+            print 'get property %s:' % prop,
+            v = eval('self.video._get_%s()' % prop)
+            print v
+            return v
+        else:
+            print
+            raise Exception("Invalid property '%s'." % prop)
+
+    def set(self, prop, value):
+        if prop in self.setters:
+            print 'set property %s:' % prop, value
+            r = False
+            try:
+                eval('self.video._set_%s(%s)' % (prop, value))
+            except picamera.PiCameraRuntimeError as e:
+                print e, ': stopping recording and retrying.'
+                r = self.recording
+                self.stopRecording()
+                eval('self.video._set_%s(%s)' % (prop, value))
+            if r:
+                self.startRecording()
+        else:
+            raise Exception("Invalid property '%s'." % prop)
+    
     def takePicture(self):
-        self.stopRecording()
+        r = False
+        try:
+            self.video._check_recording_stopped()
+        except picamera.PiCameraRuntimeError as e:
+            print e, 'stopping recording.'
+            r = self.recording
+            self.stopRecording()
         self.video.resolution = (2592, 1944) # Full still port resolution
         picture = io.BytesIO()
         self.video.capture(picture, format='jpeg', use_video_port=False, resize=None, quality=85)
         self.video.resolution = (self.frameSizeX, self.frameSizeY)
-        self.startRecording()
+        if (r):
+            self.startRecording()
         return picture.getvalue()

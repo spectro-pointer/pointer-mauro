@@ -59,7 +59,7 @@ class Camera_CLI(object):
     def initFromArgv(self):
         options = {}
         args, commands = getopt.getopt(sys.argv[1:], \
-                                       's:h', \
+                                       'hs:p:v:', \
                                        ['help'])
         args = dict(args)
         if len(commands) == 1 and commands[0] in self.commands:
@@ -68,6 +68,7 @@ class Camera_CLI(object):
             command = 'help'
             args = {}
         if '-h' in args or '--help' in args:
+            print 'args:', args
             func = Camera_CLI.print_command_help
             args = {'-c': command}
         else:
@@ -83,6 +84,10 @@ class Camera_CLI(object):
             if arg in req_params or arg in opt_params:
                 if arg == '-c':
                     options['command'] = value
+                elif arg == '-p':
+                    options['property'] = value
+                elif arg == '-v':
+                    options['value'] = value
             else:
                 raise CameraRuntimeError("The command '%s' ignores the " \
                                         "option '%s'." % (command, arg))
@@ -109,6 +114,8 @@ class Camera_CLI(object):
             '\n'
             '\nRecognized options:'
             '\n  -h|--help        : Print help for a certain command'
+            '\n  -p               : Property name'
+            '\n  -v               : Property value'
             '\n  -s               : IP/hostname of the server to use'
             '\n'
             '\nRecognized commands:')
@@ -131,6 +138,19 @@ class Camera_CLI(object):
         camera = camera_client.getCameraClient(url)
         self.tell("connected.")
         return camera
+    
+    def get(self, camera, property):
+        """Get a video property
+            For example: camera -s raspberrypi -p resolution get"""
+        v = camera.get(property)
+        print v
+    get.cli_options = (('-s', '-p',), ())
+
+    def set(self, camera, property, value):
+        """Set a video property
+            For example: camera -s raspberrypi -p resolution -s '(1024, 768)' set"""
+        camera.set(property, value)
+    set.cli_options = (('-s', '-p', '-v',), ())
 
     def serve(self, camera):
         """Serve local camera to a Camera client or GUI
@@ -165,6 +185,8 @@ class Camera_CLI(object):
     take.cli_options = (('-s',), ())
         
     commands = {'help': print_help,
+                'get': get,
+                'set': set,
                 'serve': serve,
                 'take': take
                 }

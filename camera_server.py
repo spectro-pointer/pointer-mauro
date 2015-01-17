@@ -40,9 +40,21 @@ class ServerError(IOError):
 class CameraServer(util.AsyncXMLRPCServer):
     def __init__(self, camera, iface='', port=17937):
         util.AsyncXMLRPCServer.__init__(self, iface, port)
+        
+        self.methods['get'] = self.get
+        self.methods['set'] = self.set
         self.methods['take'] = self.take
+        
         self.camera = camera
+        
         self.start()
+    
+    def get(self, p):
+        return self.camera.get(p)
+
+    def set(self, p, v):
+        self.camera.set(p, v)
+        return True
 
     def take(self):
         return xmlrpclib.Binary(self.camera.takePicture())

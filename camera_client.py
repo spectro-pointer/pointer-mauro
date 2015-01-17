@@ -97,10 +97,19 @@ class DigestError(CameraError):
 
 
 class RPCCamera(object):
-
     def __init__(self, url):
-        self.cli = xmlrpclib.ServerProxy(url)
+        self.cli = xmlrpclib.ServerProxy(url, allow_none=True)
 
+    @handle_xmlfault()
+    def get(self, p):
+        """ Gets a video property."""
+        return self.cli.get(p)
+
+    @handle_xmlfault()
+    def set(self, p, v):
+        """ Sets a video property."""
+        return self.cli.set(p, v)
+    
     @handle_xmlfault()
     def take(self):
         """ Takes a still picture."""
