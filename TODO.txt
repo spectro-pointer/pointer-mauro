@@ -9,24 +9,23 @@
         	what about pi? 
 - Axis
 	homing(done)
-		dir heuristics
 		config file
+    fix speed divergences when more than one axis moving(GIL?)
+        tune/adjust speed
 
 - Config file
     server-side
     	see pyrit's config
     	save pos/settings at exit
 
-    set change dir adjust offsets
     set relative to zero offsets
     	True North(Including magnetic declination)
-    	0º Elevation
+    	0º Elevation (use gyro?)
 
     set speed/ on/off delay
 
     auto calibrate
-    	dir change offsets
-    		using webcam/accelerometer
+    	using webcam/accelerometer/gyro/ending switches
         max speed
             using webcam/switches
     ...
@@ -38,9 +37,6 @@
 		better angle estimations
 				
 - pointer server:
-	- Add/integrate 'camera' server mode
-		camera settings protocol
-	
 	- Switch 'telescope' vs. 'serve' modes
 		support both at the same time?
 	
@@ -50,6 +46,8 @@
 
     - Gyro
         driver
+        kalman filter
+        elevation reading/feedback control
 	
 	- GPS
 		See gps/TODO.txt
@@ -69,21 +67,39 @@
 	
     webcam
     	compass
-    	level
-    	target tracking
-        light tracking   
+
+camera server:
+    Fix:
+        mouse pointer with telescope
+	    marshall_none
+        video client reconnect
+        eval (security)
+
+    properties
+    multi get
+    multi set
+    default get
+    default set/reset
+
+    get/set framerate
+
+    take picture
+        binary channel
+        resolution
         
+    motion detection/target tracking
+		picamera based
+        server based
+        opencv based
+            video frame to opencv?
+            capture frame with use_video_port=True(and different splitter_port)?
+            ?
+
 Functions:
 	- GUI
 		Settings
-		Zoom
-	
-	- Window sweeping
 	
 	- Motion detection/Moving target detection/tracking
-		picamera based
-		webcam based
-		client processing?
 		
 	- Light/brightness/color tracking
 		max brightness tracking
