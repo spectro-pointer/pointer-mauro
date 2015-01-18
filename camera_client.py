@@ -101,6 +101,11 @@ class RPCCamera(object):
         self.cli = xmlrpclib.ServerProxy(url, allow_none=True)
 
     @handle_xmlfault()
+    def properties(self):
+        """ Gets the list of gettable/settable video properties."""
+        return self.cli.properties()
+
+    @handle_xmlfault()
     def get(self, p):
         """ Gets a video property."""
         return self.cli.get(p)

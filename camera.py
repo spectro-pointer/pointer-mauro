@@ -53,14 +53,14 @@ class Camera(util.Thread):
         self.video.vflip=True
         self.video.hflip=True
         
-        self.video.exposure_mode = 'night'
-#        self.video.exposure_mode = 'auto'
+#        self.video.exposure_mode = 'night'
+        self.video.exposure_mode = 'auto'
 #        self.video.iso = 0
 #        self.video.iso = 800
         self.video.iso = 1600
 
-        self.getters = [m[5:] for m in dir(self.video) if m.find('_get_') == 0]
-        self.setters = [m[5:] for m in dir(self.video) if m.find('_set_') == 0]
+        self.getters = [m[5:] for m in dir(self.video) if m[:5] == '_get_']
+        self.setters = [m[5:] for m in dir(self.video) if m[:5] == '_set_']
 
         self.recording = False
         self.start()
@@ -97,6 +97,9 @@ class Camera(util.Thread):
     def stopRecording(self):
         self.video.stop_recording()
         self.recording = False
+
+    def properties(self):
+        return [(p, p in self.getters, p in self.setters) for p  in set(self.getters + self.setters)]
         
     def get(self, prop):
         if prop in self.getters:
@@ -114,6 +117,8 @@ class Camera(util.Thread):
             r = False
             try:
                 eval('self.video._set_%s(%s)' % (prop, value))
+            except NameError:
+                eval('self.video._set_%s(value)' % (prop))
             except picamera.PiCameraRuntimeError as e:
                 print e, ': stopping recording and retrying.'
                 r = self.recording

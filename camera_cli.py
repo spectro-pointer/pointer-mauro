@@ -139,6 +139,16 @@ class Camera_CLI(object):
         self.tell("connected.")
         return camera
     
+    def props(self, camera):
+        """Get the video properties
+            For example: camera -s raspberrypi props"""
+        properties = camera.properties()
+        print '%30s %3s %3s' % ('property', 'get', 'set')
+        print '%30s %3s %3s' % ('--------', '---', '---')
+        for p in properties:
+            print "%30s %3s %3s" % (p[0], 'yes' if p[1] else 'no', 'yes' if p[2] else 'no')
+    props.cli_options = (('-s',), ())
+
     def get(self, camera, property):
         """Get a video property
             For example: camera -s raspberrypi -p resolution get"""
@@ -185,6 +195,7 @@ class Camera_CLI(object):
     take.cli_options = (('-s',), ())
         
     commands = {'help': print_help,
+                'props': props,
                 'get': get,
                 'set': set,
                 'serve': serve,

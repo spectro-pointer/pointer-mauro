@@ -42,12 +42,16 @@ class CameraServer(util.AsyncXMLRPCServer):
         util.AsyncXMLRPCServer.__init__(self, iface, port)
         
         self.methods['get'] = self.get
+        self.methods['properties'] = self.properties
         self.methods['set'] = self.set
         self.methods['take'] = self.take
         
         self.camera = camera
         
         self.start()
+
+    def properties(self):
+        return self.camera.properties()
     
     def get(self, p):
         return self.camera.get(p)
