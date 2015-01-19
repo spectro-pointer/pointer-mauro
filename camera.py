@@ -38,30 +38,45 @@ class Camera(util.Thread):
         self.setDaemon(True)
         self.shallStop = False
 
-        self.frameSizeX = 1920
-        self.frameSizeY = 1080
-    
-        self.fps = 25
-    
         self.video = picamera.PiCamera()
-
-        self.video.led = False
         
-        self.video.resolution = (self.frameSizeX, self.frameSizeY) 
-        self.video.framerate = self.fps
+        self.video.resolution = (1920, 1080) 
+        self.video.framerate = 25
+
         
         self.video.vflip=True
         self.video.hflip=True
         
-#        self.video.exposure_mode = 'night'
+        self.video.led = False
+
         self.video.exposure_mode = 'auto'
-#        self.video.iso = 0
+#        self.video.exposure_mode = 'night'
+        
+        self.video.iso = 0
 #        self.video.iso = 800
-        self.video.iso = 1600
 
-        self.getters = [m[5:] for m in dir(self.video) if m[:5] == '_get_']
-        self.setters = [m[5:] for m in dir(self.video) if m[:5] == '_set_']
+        self.getters = {}
+        self.setters = {}
+        for m in dir(self.video):
+            prefix = m[:5]
+            suffix = m[5:]
+            if prefix == '_get_':
+                self.getters[suffix] = eval('self.video.%s' % m)
+            elif prefix == '_set_':
+                self.setters[suffix] = eval('self.video.%s' % m)
 
+        self.defaults = {}            
+        for k in self.getters.keys():
+            try:
+                self.defaults[k] = str(self.getters[k]())
+            except TypeError:
+                self.defaults[k] = 'N/A'
+                pass
+            except picamera.PiCameraRuntimeError:
+                self.defaults[k] = 'N/A'
+                pass
+            print '%s:' % k, self.defaults[k]
+            
         self.recording = False
         self.start()
 
@@ -99,34 +114,36 @@ class Camera(util.Thread):
         self.recording = False
 
     def properties(self):
-        return [(p, p in self.getters, p in self.setters) for p  in set(self.getters + self.setters)]
+        return [(p, p in self.getters.keys(), p in self.setters.keys(), self.defaults[p] if p in self.getters.keys() else '-') for p  in set(self.getters.keys() + self.setters.keys())]
         
     def get(self, prop):
-        if prop in self.getters:
+        try:
             print 'get property %s:' % prop,
-            v = eval('self.video._get_%s()' % prop)
+            v = self.getters[prop]()
             print v
-            return v
-        else:
+#            if isinstance(v, picamera.camera.PiCameraFraction):
+#                return float.__div__(*map(float, picamera.camera.to_rational(v)))
+#            return v
+            return str(v)
+        except KeyError:
             print
             raise Exception("Invalid property '%s'." % prop)
 
     def set(self, prop, value):
-        if prop in self.setters:
+        r = False
+        try:
             print 'set property %s:' % prop, value
-            r = False
-            try:
-                eval('self.video._set_%s(%s)' % (prop, value))
-            except NameError:
-                eval('self.video._set_%s(value)' % (prop))
-            except picamera.PiCameraRuntimeError as e:
-                print e, ': stopping recording and retrying.'
-                r = self.recording
-                self.stopRecording()
-                eval('self.video._set_%s(%s)' % (prop, value))
+            self.setters[prop](eval(value)) # tuples support
+        except NameError:
+            self.setters[prop](value)
+        except picamera.PiCameraRuntimeError as e:
+            print e, ': stopping recording and retrying.'
+            r = self.recording
+            self.stopRecording()
+            self.setters[prop](eval(value))
             if r:
                 self.startRecording()
-        else:
+        except KeyError:
             raise Exception("Invalid property '%s'." % prop)
     
     def takePicture(self):
@@ -137,10 +154,10 @@ class Camera(util.Thread):
             print e, 'stopping recording.'
             r = self.recording
             self.stopRecording()
-        self.video.resolution = (2592, 1944) # Full still port resolution
+#        self.video.resolution = (2592, 1944) # Full still port resolution
         picture = io.BytesIO()
         self.video.capture(picture, format='jpeg', use_video_port=False, resize=None, quality=85)
-        self.video.resolution = (self.frameSizeX, self.frameSizeY)
-        if (r):
+#        self.video.resolution = (1920, 1080)
+        if r:
             self.startRecording()
         return picture.getvalue()

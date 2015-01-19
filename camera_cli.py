@@ -143,10 +143,10 @@ class Camera_CLI(object):
         """Get the video properties
             For example: camera -s raspberrypi props"""
         properties = camera.properties()
-        print '%30s %3s %3s' % ('property', 'get', 'set')
-        print '%30s %3s %3s' % ('--------', '---', '---')
+        print '%30s %3s %3s %31s' % ('property', 'get', 'set', 'default')
+        print '%30s %3s %3s %31s' % ('--------', '---', '---', '-------')
         for p in properties:
-            print "%30s %3s %3s" % (p[0], 'yes' if p[1] else 'no', 'yes' if p[2] else 'no')
+            print "%30s %3s %3s %31s" % (p[0], 'yes' if p[1] else 'no', 'yes' if p[2] else 'no', p[3][:31] if p[1] else '-')
     props.cli_options = (('-s',), ())
 
     def get(self, camera, property):
