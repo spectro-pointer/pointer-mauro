@@ -58,7 +58,6 @@ class CameraServer(util.AsyncXMLRPCServer):
 
     def set(self, p, v):
         self.camera.set(p, v)
-        return True
 
     def take(self):
         return xmlrpclib.Binary(self.camera.takePicture())

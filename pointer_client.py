@@ -99,7 +99,7 @@ class DigestError(PointerError):
 class RPCPointer(object):
 
     def __init__(self, url):
-        self.cli = xmlrpc.client.ServerProxy(url, allow_none=True)
+        self.cli = xmlrpc.client.ServerProxy(url)
 
     @handle_xmlfault()
     def move(self, coords, v1, v2):

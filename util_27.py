@@ -63,7 +63,8 @@ class AsyncXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer, Thread):
 
     def __init__(self, iface='', port=17934):
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, (iface, port), \
-                                                        logRequests=False)
+                                                        logRequests=False, \
+                                                        allow_none=True)
         Thread.__init__(self)
         self.setDaemon(True)
         # Make the main socket non-blocking (for accept())
