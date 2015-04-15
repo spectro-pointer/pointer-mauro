@@ -21,6 +21,9 @@ sudo apt-get -y install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
 # Install video streaming libraries
 sudo apt-get -y install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev 
 
+# Uninstall stock opencv packages
+dpkg --get-selections | grep opencv | awk '{print $1}' | sudo xargs dpkg -P
+
 # install the Python development environment and the Python Numerical library
 sudo apt-get -y install python-dev python-numpy
  
@@ -53,3 +56,6 @@ make
 
 # And finally, install OpenCV
 sudo make install
+
+# And, don't forget to install needed video streaming plugins
+sudo apt-get -y install gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
