@@ -31,7 +31,7 @@ sudo apt-get -y install libtbb-dev
 sudo apt-get -y install libqt4-dev
 
 # Now download OpenCV 3.0 to wherever you want to compile the source
-cd ~/src
+cd /usr/src
 #sudo rm -rf opencv-3.0
 sudo mkdir opencv-3.0
 sudo chown $USER opencv-3.0
