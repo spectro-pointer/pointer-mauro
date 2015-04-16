@@ -75,6 +75,9 @@ class Camera(util.Thread):
             except picamera.PiCameraRuntimeError:
                 self.defaults[k] = 'N/A'
                 pass
+            except NotImplementedError:
+                self.defaults[k] = 'N/A'
+                pass
             print '%s:' % k, self.defaults[k]
             
         self.recording = False
