@@ -37,11 +37,11 @@ class GuiVideo(Video):
             return None
 
 # Pointer server hostname/IP
-#pointer_server = 'torre.hiper3.com.ar'
-pointer_server = 'pi'
+pointer_server = 'torre.hiper3.com.ar'
+#pointer_server = 'pi'
 # Camera server hostname/IP
-#camera_server = pointer_server
-camera_server = 'picamera'
+camera_server = pointer_server
+#camera_server = 'picamera'
        
 class GraphicsPixmapItem(QGraphicsPixmapItem):
     def __init__(self, main=None):
@@ -135,7 +135,7 @@ class MainWindow(QMainWindow, gui):
         fps=25
         captureTime = 1./fps*1000. # [ms]
         
-        dataTime = 2000. # [ms]
+        dataTime = 5000. # [ms]
 
         """
             Video capture address
@@ -209,7 +209,7 @@ class MainWindow(QMainWindow, gui):
         # Start timers
         self.captureTimer.start(captureTime)
         
-        self.dataTimer.start(dataTime)
+#        self.dataTimer.start(dataTime)
         
 #        desktop = QApplication.desktop();
 #        self.screen_width = desktop.width();
