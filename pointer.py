@@ -691,8 +691,12 @@ class RAdecPointer(AzElPointer):
         self.magneticDeclination = +7.0 # [degrees]
         self.time = time.time()
         self.gpsData = {}
-#        self.gps = None # no gps
-        self.gps = GpsPoller(server='pi') # FIXME: config parameter for server
+        self.gps = None
+        # Try GPS support
+        try:
+            self.gps = GpsPoller(server='localhost') # FIXME: config parameter for server
+        except:
+            pass
         if (self.gps):
             self.gps.start()
             self._gpsUpdate() 
