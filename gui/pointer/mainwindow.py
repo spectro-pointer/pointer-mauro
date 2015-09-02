@@ -211,7 +211,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Pointer Gui", None, QtGui.QApplication.UnicodeUTF8))
+        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Pointer Gui-colimacion", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setTitle(QtGui.QApplication.translate("MainWindow", "Step size", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButtonDegrees.setText(QtGui.QApplication.translate("MainWindow", "degrees", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButtonArcsecs.setText(QtGui.QApplication.translate("MainWindow", "arcsecs", None, QtGui.QApplication.UnicodeUTF8))

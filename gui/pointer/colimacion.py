@@ -40,7 +40,7 @@ class GuiVideo(Video):
 pointer_server = '192.168.0.101'
 #pointer_server = 'pi'
 # Camera server hostname/IP
-camera_server = pointer_server
+camera_server = '192.168.0.100'
 #camera_server = 'picamera'
        
 class GraphicsPixmapItem(QGraphicsPixmapItem):
@@ -96,6 +96,9 @@ class Crosshair():
         self.z=1
 
     def draw(self, x=None, y=None):
+
+	print "x: " + str(x) + ", y: " + str(y)	
+
         if x != None:
             self.x = x-self.r
         if y != None:
@@ -149,7 +152,7 @@ class MainWindow(QMainWindow, gui):
         # Gstreamer0.10
 #        videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! gdpdepay ! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! appsink sync=false'
         # Gstreamer1.0
-        videoStream = 'tcpclientsrc host=' + camera_server + ' port=6000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink sync=false' # ffmpegcolorspace ! 
+        videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink sync=false' # ffmpegcolorspace ! 
 #        videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! h264parse ! avdec_h264 ! videoconvert ! appsink sync=false' # ffmpegcolorspace !
         
         if videoStream == 0: # Webcam, default resolution
@@ -283,9 +286,11 @@ class MainWindow(QMainWindow, gui):
 #            print 'frame size Y:', self.frameSizeY
             self.graphicsScene.setSceneRect(QRectF(0, 0, self.frameSizeX, self.frameSizeY))
             self.pixmapItem.setPixmap(self.videoFrame)
+
+	    # Red crosshair, set position
             if self.first:
-                x = self.graphicsScene.width() / 2
-                y = self.graphicsScene.height() / 2
+                x = 366.25 # self.graphicsScene.width() / 2
+                y = 262.5 # self.graphicsScene.height() / 2
                 self.crosshair.draw(x, y)
                 self.first = False
         except Exception as e:
@@ -307,7 +312,7 @@ class MainWindow(QMainWindow, gui):
 
     
 if __name__ == "__main__":
-    QApplication.setApplicationName("POINTERGUI");
+    QApplication.setApplicationName("POINTERGUI-COLIMACION");
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
