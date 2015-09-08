@@ -1,4 +1,4 @@
-:
+#!/bin/bash
 
 # OpenCV installation for Ubuntu 12.04
 # Installs OpenCV 3.0

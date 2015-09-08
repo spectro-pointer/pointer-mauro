@@ -1,4 +1,4 @@
-:
+#!/bin/bash
 
 # OpenCV installation for Ubuntu 12.04
 # To install OpenCV 2.4.x on Ubuntu 12.04, first install
