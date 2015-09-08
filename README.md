@@ -34,7 +34,7 @@ Pour exécuter l'interface graphique sur le client il faut se connecter sur le r
 sudo ./spectro-pointer/gui/pointer/pointer_gui.py
 ```
 
-À l'heure actuelle, le spectro-pointer n'arrive pas à centrer la lumière sur l'entrée de la fibre optique. Il faut donc régler manuelleme en utilisant l'interface graphique du logiciel colimacion.py:
+À l'heure actuelle, le spectro-pointer n'arrive pas à centrer la lumière sur l'entrée de la fibre optique. Il faut donc régler manuellement en utilisant l'interface graphique du logiciel colimacion.py:
 ```
 sudo ./spectro-pointer/gui/pointer/colimacion.py
 ```
