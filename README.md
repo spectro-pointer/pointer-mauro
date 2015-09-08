@@ -22,7 +22,7 @@ a) Le processus actuel est complètement manuel et nécessite la présence physi
 
 b) La deuxième étape de ce développement sera l'automatisation du processus de comparaison avec la base de données de signatures spectrales déjà identifiées.
 
-## Configuration du client
+## Configuration du client (testé sous Ubuntu 14.04)
 
  Pour le bon fonctionnement des programmes mentionnés ci-dessus, il faut d'abord installer, sur le client et sur le server, le script suivant :
 ```
