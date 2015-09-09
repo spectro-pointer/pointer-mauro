@@ -153,16 +153,16 @@ class MainWindow(QMainWindow, gui):
 #        videoStream = 'tcpclientsrc host=' + camera_server + ' port=5000 ! h264parse ! avdec_h264 ! videoconvert ! appsink sync=false' # ffmpegcolorspace !
         
         if videoStream == 0: # Webcam, default resolution
-            self.cameraPan = 46.5 # [°]
-            self.cameraTilt= 22.5 # [°]
+            self.cameraPan = 46 # [°]
+            self.cameraTilt= 32 # [°]
         elif videoStream == 'picamera':
-            self.cameraPan = 46.5 # [°]
-            self.cameraTilt= 22.5 # [°]
+            self.cameraPan = 46 # [°]
+            self.cameraTilt= 32 # [°]
             self.frameSizeX= 1080 # [px]
             self.frameSizeY= 720 # [px]
         else: # rtsp/rtp (assumes server with picamera, server set resolution)
-            self.cameraPan = 46.5 # [°]
-            self.cameraTilt= 22.5 # [°]
+            self.cameraPan = 46 # [°]
+            self.cameraTilt= 32 # [°]
             self.frameSizeX= 1080 # [px]
             self.frameSizeY= 720 # [px]
 
